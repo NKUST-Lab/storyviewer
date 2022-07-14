@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.btn-page{
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  cursor: pointer;
+  border:0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: cover;
+
+}
+
+.btn-page.btn-prev{
+  background-image: url("../src/imgs/btn_previous.png");
+  top:850px;
+  left:400px
+}
+
+.btn-page.btn-next{
+  background-image: url("../src/imgs/btn_next_readfirst.png");
+  top:850px;
+  left:1650px;
+}
