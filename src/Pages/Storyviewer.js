@@ -7,6 +7,9 @@ function Storyviewer() {
     const { bookid } = useParams();
     const [page, setpage] = useState(0);
     const [allcontent, setallcontent] = useState([]);
+    const [prevButtonStyle, setprevButtonStyle] = useState();
+    const [nextButtonStyle, setnextButtonStyle] = useState();
+    const [isButtonDisabled, setisButtonDisabled] = useState(false);
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -23,34 +26,71 @@ function Storyviewer() {
             })
     }, [])
 
+    //縮放畫布 及 設置按鈕位置及大小
+    useEffect(() => {
+        const canvas = document.getElementById("preview");
+        const ctx = canvas.getContext("2d"); //取得Dom元素
+
+        //將畫布比例縮小至1578 * 1080
+        const scaleX = 0.7095323741;
+        const scaleY = 0.64748201438;
+        ctx.scale(scaleX, scaleY);
+
+        //用以設置換頁按鈕位置
+        const buttonHeight = 1080 * scaleY - 200;
+
+        setprevButtonStyle({
+            top: buttonHeight,
+            left: 100 * scaleX,
+        })
+
+        const canvasWidth = document.getElementById("preview").width;
+
+        setnextButtonStyle({
+            top: buttonHeight,
+            left: 1578 * scaleX - 200,
+        })
+    }, [])
+
     //換頁時更新顯示內容
     useEffect(() => {
         const currentContent = allcontent[page];
         console.log(currentContent);
-        
+
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
-        ctx.clearRect(0, 0, 2224, 1668) //清空畫布
 
         const draw = async () => {
             //防止還未取得資料時執行
             if (!currentContent) {
+                setisButtonDisabled(false); //將按鈕啟動
                 return
             }
             await drawBackgroundImage(ctx, canvas, currentContent) //繪製底圖
             await drawAccessories(ctx, currentContent); //繪製配件
             await drawCharacter(ctx, currentContent); //繪製角色
             drawText(ctx, currentContent); //繪製文字
+
+            setisButtonDisabled(false); //繪畫完成後即可跨到下一頁
         }
+        //開始繪畫
         draw();
+
+        //比上方先執行
+        return () => {
+            ctx.clearRect(0, 0, 2224, 1668) //清空畫布
+            setisButtonDisabled(true); //未載入畫面前不可前往下一頁
+        }
+
     }, [page, allcontent]);
+
 
     return (
         <>
             <canvas id="preview" width="2224" height="1668">
             </canvas>
-            <button className="btn-page btn-prev" onClick={() => setpage(prevPage => prevPage - 1)}></button>
-            <button className="btn-page btn-next" onClick={() => setpage(prevPage => prevPage + 1)}></button>
+            <button className="btn-page btn-prev" style={prevButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage - 1)}></button>
+            <button className="btn-page btn-next" style={nextButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage + 1)}></button>
         </>
     );
 }
