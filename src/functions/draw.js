@@ -6,8 +6,7 @@ export function drawBackgroundImage(ctx, canvas, data) {
     return (
         new Promise((resolve) => {
             img.addEventListener("load", () => {
-                const imgX = canvas.width / 2 - 1578 / 2;
-                ctx.drawImage(img, imgX, 0, 1578, 1080);
+                ctx.drawImage(img, 0, 0, img.width, img.height);
                 resolve();
             })
         })
@@ -68,7 +67,7 @@ function drawThings(ctx, src, size, location) {
             img.addEventListener("load", () => {
                 const resizeWidth = img.width * percentagesize;
                 const resizeHeight = img.height * percentagesize;
-                ctx.drawImage(img, locationX - resizeWidth, locationY - resizeHeight, resizeWidth, resizeHeight);
+                ctx.drawImage(img, locationX - resizeWidth / 2, locationY - resizeHeight / 2, resizeWidth, resizeHeight);
                 resolve();
             })
         })
