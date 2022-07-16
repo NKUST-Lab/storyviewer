@@ -5,11 +5,17 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  display:flex;
+  justify-content: center;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.container{
+  position: relative;
 }
 
 .btn-page{
@@ -29,5 +35,4 @@ code {
 
 .btn-page.btn-next{
   background-image: url("../src/imgs/btn_next_readfirst.png");
-  left:1850px;
 }
