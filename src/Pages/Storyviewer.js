@@ -34,10 +34,12 @@ function Storyviewer() {
         //將畫布比例縮小至1578 * 1080
         const scaleX = 0.7095323741;
         const scaleY = 0.64748201438;
+        ctx.canvas.width = 1578;
+        ctx.canvas.height = 1080;
         ctx.scale(scaleX, scaleY);
 
         //用以設置換頁按鈕位置
-        const buttonHeight = 1080 * scaleY - 200;
+        const buttonHeight = document.getElementById("preview").height - 200;
 
         setprevButtonStyle({
             top: buttonHeight,
@@ -45,10 +47,11 @@ function Storyviewer() {
         })
 
         const canvasWidth = document.getElementById("preview").width;
+        const buttonSize = document.getElementsByClassName("btn-page")[0].clientWidth;
 
         setnextButtonStyle({
             top: buttonHeight,
-            left: 1578 * scaleX - 200,
+            left: canvasWidth - (100 * scaleX) - buttonSize,
         })
     }, [])
 
@@ -86,12 +89,12 @@ function Storyviewer() {
 
 
     return (
-        <>
+        <div className='container'>
             <canvas id="preview" width="2224" height="1668">
             </canvas>
             <button className="btn-page btn-prev" style={prevButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage - 1)}></button>
             <button className="btn-page btn-next" style={nextButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage + 1)}></button>
-        </>
+        </div>
     );
 }
 
