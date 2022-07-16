@@ -1,6 +1,6 @@
 
 //繪製底圖
-export function drawBackgroundImage(ctx, canvas, data) { 
+export function drawBackgroundImage(ctx, data) { 
     const img = new Image();
     img.src = data.page_photo_url;
     return (
