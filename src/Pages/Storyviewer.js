@@ -1,6 +1,8 @@
 import { useParams } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import { drawBackgroundImage, drawText, drawAccessories, drawCharacter } from './../functions/draw';
+import useResize from './../Hooks/useResize';
+
 
 function Storyviewer() {
 
@@ -24,35 +26,6 @@ function Storyviewer() {
             .catch((err) => {
                 console.log("error message:", err);
             })
-    }, [])
-
-    //縮放畫布 及 設置按鈕位置及大小
-    useEffect(() => {
-        const canvas = document.getElementById("preview");
-        const ctx = canvas.getContext("2d"); //取得Dom元素
-
-        //將畫布比例縮小至1578 * 1080
-        const scaleX = 0.7095323741;
-        const scaleY = 0.64748201438;
-        ctx.canvas.width = 1578;
-        ctx.canvas.height = 1080;
-        ctx.scale(scaleX, scaleY);
-
-        //用以設置換頁按鈕位置
-        const buttonHeight = document.getElementById("preview").height - 200;
-
-        setprevButtonStyle({
-            top: buttonHeight,
-            left: 100 * scaleX,
-        })
-
-        const canvasWidth = document.getElementById("preview").width;
-        const buttonSize = document.getElementsByClassName("btn-page")[0].clientWidth;
-
-        setnextButtonStyle({
-            top: buttonHeight,
-            left: canvasWidth - (100 * scaleX) - buttonSize,
-        })
     }, [])
 
     //換頁時更新顯示內容
@@ -87,14 +60,16 @@ function Storyviewer() {
 
     }, [page, allcontent]);
 
+    //處理RWD
+    useResize();
 
     return (
         <div className='container'>
             <canvas id="preview" width="2224" height="1668">
                 無此內容!
             </canvas>
-            <button className="btn-page btn-prev" style={prevButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage - 1)}></button>
-            <button className="btn-page btn-next" style={nextButtonStyle} disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage + 1)}></button>
+            <button className="btn-page btn-prev" disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage - 1)}></button>
+            <button className="btn-page btn-next" disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage + 1)}></button>
         </div>
     );
 }
