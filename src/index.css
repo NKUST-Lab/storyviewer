@@ -16,6 +16,11 @@ code {
 
 .container{
   position: relative;
+  overflow: hidden;
+}
+
+canvas{
+  overflow: hidden;
 }
 
 .btn-page{

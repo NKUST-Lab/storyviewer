@@ -9,8 +9,6 @@ function Storyviewer() {
     const { bookid } = useParams();
     const [page, setpage] = useState(0);
     const [allcontent, setallcontent] = useState([]);
-    const [prevButtonStyle, setprevButtonStyle] = useState({});
-    const [nextButtonStyle, setnextButtonStyle] = useState({});
     const [isButtonDisabled, setisButtonDisabled] = useState(false);
 
     //取得所有的書籍內容
@@ -20,7 +18,6 @@ function Storyviewer() {
                 return res.json();
             })
             .then((res) => {
-                console.log(res);
                 setallcontent(res.book_pages);
             })
             .catch((err) => {
@@ -28,40 +25,59 @@ function Storyviewer() {
             })
     }, [])
 
-    //換頁時更新顯示內容
-    useEffect(() => {
+    const draw = async () => {
         const currentContent = allcontent[page];
+        console.log("doDraw");
         console.log(currentContent);
 
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
 
-        const draw = async () => {
-            //防止還未取得資料時執行
-            if (!currentContent) {
-                setisButtonDisabled(false); //將按鈕啟動
-                return
-            }
-            await drawBackgroundImage(ctx, currentContent) //繪製底圖
-            await drawAccessories(ctx, currentContent); //繪製配件
-            await drawCharacter(ctx, currentContent); //繪製角色
-            drawText(ctx, currentContent); //繪製文字
+        ctx.clearRect(0, 0, 2224, 1668) //清空畫布
 
-            setisButtonDisabled(false); //繪畫完成後即可跨到下一頁
-        }
-        //開始繪畫
-        draw();
-
-        //比上方先執行
-        return () => {
-            ctx.clearRect(0, 0, 2224, 1668) //清空畫布
-            setisButtonDisabled(true); //未載入畫面前不可前往下一頁
+        //防止還未取得資料時執行
+        if (!currentContent) {
+            setisButtonDisabled(false); //將按鈕啟動
+            return
         }
 
-    }, [page, allcontent]);
+        await drawBackgroundImage(ctx, currentContent) //繪製底圖
+        await drawAccessories(ctx, currentContent); //繪製配件
+        await drawCharacter(ctx, currentContent); //繪製角色
+        drawText(ctx, currentContent); //繪製文字
+
+        setisButtonDisabled(false); //繪畫完成後即可跨到下一頁
+    }
+
 
     //處理RWD
     useResize();
+    //當視窗大小更動時觸發重新繪畫
+    const [windowWidth, setwindowWidth] = useState(0);
+    window.addEventListener("resize", () => setwindowWidth(window.innerWidth));
+    useEffect(() => {
+        //Prevent Load in First time
+        if (windowWidth === 0) return
+        const drawtimer = setTimeout(() => {
+            draw();
+        }, 2000);
+
+        return () => {
+            clearTimeout(drawtimer);
+        }
+    }, [windowWidth]);
+
+
+    //換頁時重新繪畫
+    useEffect(() => {
+
+        //開始繪畫
+        draw();
+
+        return () => {
+            setisButtonDisabled(true); //未載入畫面前不可前往下一頁
+        }
+    }, [page, allcontent]);
 
     return (
         <div className='container'>
