@@ -68,7 +68,7 @@ function Storyviewer() {
         }));
     }, []);
 
-    //
+    
     const resize = useCallback(() => {
             const canvas = document.getElementById("preview");
             const ctx = canvas.getContext("2d"); //取得Dom元素
