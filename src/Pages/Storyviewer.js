@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom';
 import React, { useEffect, useState, useCallback } from 'react';
 import { drawBackgroundImage, drawText, drawAccessories, drawCharacter } from './../functions/draw';
-import useResize from '../Hooks/useResize';
 
 function Storyviewer() {
 
@@ -80,8 +79,8 @@ function Storyviewer() {
             ctx.resetTransform();
 
             //取得使用者的視窗大小減掉 342 使最大尺寸為1578
-            const resizedCanvasWidth = window.innerWidth - 342;
-
+            const resizedCanvasWidth = window.innerWidth - (window.innerWidth * 0.15);
+            
             //透過比例算出畫布適合高度
             const ratio = resizedCanvasWidth / 2224;
             const resizedCanvasHeight = 1668 * ratio > 1080 ? 1080 : 1668 * ratio;
