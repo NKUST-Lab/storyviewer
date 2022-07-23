@@ -78,8 +78,8 @@ function Storyviewer() {
             //原尺寸2224 * 1668
             ctx.resetTransform();
 
-            //取得使用者的視窗大小減掉 342 使最大尺寸為1578
-            const resizedCanvasWidth = window.innerWidth - (window.innerWidth * 0.15);
+            //取得使用者的視窗大小使Canvas等於視窗大小的0.85
+            const resizedCanvasWidth = window.innerWidth * 0.85
             
             //透過比例算出畫布適合高度
             const ratio = resizedCanvasWidth / 2224;
@@ -96,17 +96,24 @@ function Storyviewer() {
             //設定按鈕大小
             const prevButton = document.getElementsByClassName("btn-prev")[0];
             const nextButton = document.getElementsByClassName("btn-next")[0];
-
+            //Every 25px from 1920 to userWindow reduce the size of Buttons 1px
+            const responsivecondition = (1920 - window.innerWidth)/25
+            const buttonSize = 150
+            const resizedButtonSize = buttonSize - responsivecondition
+            prevButton.style.width = `${resizedButtonSize}px`;
+            prevButton.style.height = `${resizedButtonSize}px`;
+            nextButton.style.width = `${resizedButtonSize}px`;
+            nextButton.style.height = `${resizedButtonSize}px`;
+            
             //設定按鈕位置
-            const buttonHeight = resizedCanvasHeight - 200;
-            prevButton.style.top = `${buttonHeight}px`;
+            const buttonTop = resizedCanvasHeight - resizedButtonSize;
+            prevButton.style.top = `${buttonTop}px`;
             prevButton.style.left = `${100 * scaleX}px`;
 
             const canvasWidth = document.getElementById("preview").width;
-            const buttonSize = document.getElementsByClassName("btn-page")[0].clientWidth;
 
-            nextButton.style.top = `${buttonHeight}px`;
-            nextButton.style.left = `${canvasWidth - (100 * scaleX) - buttonSize}px`;
+            nextButton.style.top = `${buttonTop}px`;
+            nextButton.style.left = `${canvasWidth - (100 * scaleX) - resizedButtonSize}px`;
         },[windowWidth])
         
 
