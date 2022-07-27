@@ -78,7 +78,7 @@ function Storyviewer() {
             //原尺寸2224 * 1668
             ctx.resetTransform();
 
-            //取得使用者的視窗大小使Canvas等於視窗大小的0.85
+            //取得使用者的視窗大小使Canvas等於視窗大小的0.64
             const resizedCanvasWidth = window.innerWidth * 0.64
             
             //透過比例算出畫布適合高度
