@@ -79,11 +79,12 @@ function Storyviewer() {
             ctx.resetTransform();
 
             //取得使用者的視窗大小使Canvas等於視窗大小的0.85
-            const resizedCanvasWidth = window.innerWidth * 0.85
+            const resizedCanvasWidth = window.innerWidth * 0.64
             
             //透過比例算出畫布適合高度
             const ratio = resizedCanvasWidth / 2224;
-            const resizedCanvasHeight = 1668 * ratio > 1080 ? 1080 : 1668 * ratio;
+            const resizedCanvasHeight = 1668 * ratio
+
 
             //設定畫布大小及縮放
             ctx.canvas.width = resizedCanvasWidth;
