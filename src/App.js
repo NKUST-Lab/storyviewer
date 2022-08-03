@@ -3,7 +3,7 @@ import Storyviewer from './Pages/Storyviewer';
 
 function App() {
   return (
-    <Router>
+    <Router basename="/storyviewer/">
       <Routes>
         <Route path='/' element={<Navigate to="/storyviewer/152/1" replace/>}/>
         <Route path='/storyviewer/:bookid' element={<Storyviewer/>}/>
