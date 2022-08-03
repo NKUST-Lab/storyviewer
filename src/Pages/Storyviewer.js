@@ -5,9 +5,10 @@ import { drawBackgroundImage, drawText, drawAccessories, drawCharacter } from '.
 function Storyviewer() {
 
     const { bookid } = useParams();
-    const [page, setpage] = useState(0);
-    const [allcontent, setallcontent] = useState([]);
-    const [isButtonDisabled, setisButtonDisabled] = useState(false);
+    const [total_page_number, settotal_page_number] = useState(0);
+    const [page_number, setpage_number] = useState(0);
+    const [book_page_content, setbook_page_content] = useState([]);
+    const [is_button_disabled, setis_button_disabled] = useState(false);
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -16,7 +17,8 @@ function Storyviewer() {
                 return res.json();
             })
             .then((res) => {
-                setallcontent(res.book_pages);
+                setbook_page_content(res.book_pages);
+                settotal_page_number(res.book_pages.length);
             })
             .catch((err) => {
                 console.log("error message:", err);
@@ -25,7 +27,7 @@ function Storyviewer() {
 
     //繪畫Function
     const draw = async () => {
-        const currentContent = allcontent[page];
+        const currentContent = book_page_content[page_number];
         console.log("doDraw");
         console.log("currentContent", currentContent);
 
@@ -36,7 +38,7 @@ function Storyviewer() {
 
         //防止還未取得資料時執行
         if (!currentContent) {
-            setisButtonDisabled(false); //將按鈕啟動
+            setis_button_disabled(false); //將按鈕啟動
             return
         }
 
@@ -45,7 +47,7 @@ function Storyviewer() {
         await drawCharacter(ctx, currentContent); //繪製角色
         drawText(ctx, currentContent); //繪製文字
 
-        setisButtonDisabled(false); //繪畫完成後即可跨到下一頁
+        setis_button_disabled(false); //繪畫完成後即可跨到下一頁
     }
 
 
@@ -58,8 +60,8 @@ function Storyviewer() {
             timer = setTimeout(func, 1000);
         };
     }
-
     useEffect(() => {
+        handleSetPage(0);
         resize();
         window.addEventListener("resize", debounce(() => {
             resize();
@@ -67,7 +69,6 @@ function Storyviewer() {
         }));
     }, []);
 
-    
     const resize = useCallback(() => {
             const canvas = document.getElementById("preview");
             const ctx = canvas.getContext("2d"); //取得Dom元素
@@ -125,17 +126,36 @@ function Storyviewer() {
 
         return () => {
             //未載入畫面前不可前往下一頁
-            setisButtonDisabled(true);
+            setis_button_disabled(true);
         }
-    }, [page, allcontent , resize]);
+    }, [page_number, book_page_content , resize]);
+
+    const handleSetPage = (_page_number) => {
+
+        document.querySelectorAll("button.btn-prev")[0].style.display = "block"
+        document.querySelectorAll("button.btn-next")[0].style.display = "block"
+
+        if(_page_number === 0){
+            document.querySelectorAll("button.btn-prev")[0].style.display = "none"
+            return
+        }
+
+        if(_page_number === total_page_number){
+            document.querySelectorAll("button.btn-next")[0].style.display = "none"
+            return
+        }
+
+        setpage_number(_page_number)
+    }
+
 
     return (
         <div className='container'>
             <canvas id="preview" width="2224" height="1668">
                 無此內容!
             </canvas>
-            <button className="btn-page btn-prev" disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage - 1)}></button>
-            <button className="btn-page btn-next" disabled={isButtonDisabled} onClick={() => setpage(prevPage => prevPage + 1)}></button>
+            <button className="btn-page btn-prev" disabled={is_button_disabled} onClick={() => handleSetPage(page_number - 1)}></button>
+            <button className="btn-page btn-next" disabled={is_button_disabled} onClick={() => handleSetPage(page_number + 1)}></button>
         </div>
     );
 }
