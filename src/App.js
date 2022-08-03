@@ -5,8 +5,8 @@ function App() {
   return (
     <Router basename="/storyviewer/">
       <Routes>
-        <Route path='/' element={<Navigate to="/storyviewer/152" replace/>}/>
-        <Route path='/storyviewer/:bookid' element={<Storyviewer/>}/>
+        <Route path='/' element={<Navigate to="/152" replace/>}/>
+        <Route path='/:bookid' element={<Storyviewer/>}/>
       </Routes>
     </Router>
   );
