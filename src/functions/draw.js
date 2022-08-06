@@ -1,6 +1,6 @@
 
 //繪製底圖
-export function drawBackgroundImage(ctx, data) { 
+export function drawBackgroundImage(ctx, data) {
     const img = new Image();
     img.src = data.page_photo_url;
     return (
@@ -14,7 +14,7 @@ export function drawBackgroundImage(ctx, data) {
 }
 
 //繪製文字
-export function drawText(ctx, data) { 
+export function drawText(ctx, data) {
     if (data.text == undefined) return
     for (let i = 0; i < data.text.length; i++) {
         const text = data.text[i];
@@ -29,8 +29,22 @@ export function drawText(ctx, data) {
         //設置陰影
         if (text.shadow === 1) {
             ctx.shadowColor = text.shadow_color;
-            ctx.shadowOffsetX = 1;
-            ctx.shadowOffsetY = 1;   
+            ctx.shadowOffsetX = text.shadow;
+            ctx.shadowOffsetY = text.shadow;
+        }
+        //設定旋轉
+        ctx.rotate(text.rotate);
+        //設定對齊
+        switch (text.alignment) {
+            case 0:
+                ctx.textAlign = 'center'
+                break;
+            case 1:
+                ctx.textAlign = 'left'
+                break;
+            case 2:
+                ctx.textAlign = 'right'
+                break;
         }
         wrapText(ctx, text_context, locationX, locationY, rictWidth, text.text_size);
         // ctx.fillText(text_context, locationX, locationY, rictWidth);
@@ -38,7 +52,7 @@ export function drawText(ctx, data) {
 }
 
 //繪製角色
-export async function drawCharacter(ctx, data) { 
+export async function drawCharacter(ctx, data) {
     if (data.character == undefined) return
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
@@ -47,7 +61,7 @@ export async function drawCharacter(ctx, data) {
 }
 
 //繪製配件
-export async function drawAccessories(ctx, data) { 
+export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
     for (let i = 0; i < data.accessories.length; i++) {
         const accessory = data.accessories[i];
@@ -56,7 +70,7 @@ export async function drawAccessories(ctx, data) {
 }
 
 //圖形繪製
-function drawThings(ctx, src, size, location) { 
+function drawThings(ctx, src, size, location) {
     const img = new Image();
     img.src = src; //設定URL
     const percentagesize = size / 100; //設定Size
@@ -76,9 +90,13 @@ function drawThings(ctx, src, size, location) {
 
 //會自動換行的fillText
 const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
-    const words = text.split(' ');
+    const words = text.trim().split(' ');
     let line = '';
-    for (const [index, w] of words.entries()) {
+    console.log(`words${words}`)
+    for (let [index, w] of words.entries()) {
+        ctx.font = w.substring(0,2) === "##" && w.slice(-2) === "##" ? `bold ${ctx.font}` : ctx.font;
+        w = w.substring(0,2) === "##" && w.slice(-2) === "##" ? w.replaceAll(/##/gm,'') : w;
+        console.log(`w is ${w}`)
         const testLine = line + w + ' ';
         const metrics = ctx.measureText(testLine);
         const testWidth = metrics.width;
