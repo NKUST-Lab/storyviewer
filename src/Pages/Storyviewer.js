@@ -34,7 +34,7 @@ function Storyviewer() {
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
 
-        ctx.clearRect(0, 0, 2224, 1668) //清空畫布
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight) //清空畫布
 
         //防止還未取得資料時執行
         if (!currentContent) {
