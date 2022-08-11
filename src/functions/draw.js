@@ -61,7 +61,7 @@ export async function drawCharacter(ctx, data) {
     if (data.character == undefined) return
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, character.size || 100, character.source_location);
+        await drawThings(ctx, character.source_url, character.source_size || 100, character.source_location);
     }
 }
 
