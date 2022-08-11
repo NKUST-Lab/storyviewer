@@ -9,7 +9,7 @@ export function drawBackgroundImage(ctx, data) {
                 ctx.drawImage(img, 0, 0, img.width, img.height);
                 resolve();
             })
-            img.onerror = ()=>{
+            img.onerror = () => {
                 console.warn("background image load failed")
             }
         })
@@ -35,9 +35,6 @@ export function drawText(ctx, data) {
             ctx.shadowOffsetX = text.shadow;
             ctx.shadowOffsetY = text.shadow;
         }
-        //設定旋轉
-        ctx.save();
-        if(text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
         //設定對齊
         switch (text.alignment) {
             case 0:
@@ -50,8 +47,11 @@ export function drawText(ctx, data) {
                 ctx.textAlign = 'right'
                 break;
         }
+        //設定旋轉
+        ctx.save();
+        if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
         wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16);
-        if(text.rotate !== 0) ctx.restore()
+        if (text.rotate !== 0) ctx.restore()
         // ctx.fillText(text_context, locationX, locationY, rictWidth);
     }
 }
@@ -105,7 +105,7 @@ const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
     console.log(`words${words}`)
     for (let [index, w] of words.entries()) {
         ctx.font = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? `bold ${ctx.font}` : ctx.font;
-        w = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? w.substring(2,w.length - 1) : w
+        w = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? w.substring(2, w.length - 1) : w
         const testLine = line + w + ' ';
         const metrics = ctx.measureText(testLine);
         const testWidth = metrics.width;
