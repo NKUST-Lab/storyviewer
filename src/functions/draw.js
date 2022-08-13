@@ -3,6 +3,7 @@
 export function drawBackgroundImage(ctx, data) {
     const img = new Image();
     img.src = data.page_photo_url;
+    img.crossOrigin="anonymous" //設定後才能轉成圖片
     return (
         new Promise((resolve) => {
             img.addEventListener("load", () => {
@@ -19,41 +20,45 @@ export function drawBackgroundImage(ctx, data) {
 //繪製文字
 export function drawText(ctx, data) {
     if (data.text == undefined) return
-    for (let i = 0; i < data.text.length; i++) {
-        const text = data.text[i];
-        const rictWidth = parseInt(text.rect.split(",")[0]);
-        const rictHeight = parseInt(text.rect.split(",")[1]);
-        const locationX = parseInt(text.location.split(",")[0]);
-        const locationY = parseInt(text.location.split(",")[1]);
-        const text_context = text.book_text;
-        //設置字型及大小
-        ctx.font = `${text.text_size}px Chalkboard SE Light`;
-        ctx.fillStyle = text.text_color;
-        //設置陰影
-        if (text.shadow === 1) {
-            ctx.shadowColor = text.shadow_color;
-            ctx.shadowOffsetX = text.shadow;
-            ctx.shadowOffsetY = text.shadow;
+    return new Promise(resolve => {
+        for (let i = 0; i < data.text.length; i++) {
+            const text = data.text[i];
+            const rictWidth = parseInt(text.rect.split(",")[0]);
+            const rictHeight = parseInt(text.rect.split(",")[1]);
+            const locationX = parseInt(text.location.split(",")[0]);
+            const locationY = parseInt(text.location.split(",")[1]);
+            const text_context = text.book_text;
+            //設置字型及大小
+            ctx.font = `${text.text_size}px Chalkboard SE Light`;
+            ctx.fillStyle = text.text_color;
+            //設置陰影
+            if (text.shadow === 1) {
+                ctx.shadowColor = text.shadow_color;
+                ctx.shadowOffsetX = text.shadow;
+                ctx.shadowOffsetY = text.shadow;
+            }
+            //設定對齊
+            switch (text.alignment) {
+                case 0:
+                    ctx.textAlign = 'center'
+                    break;
+                case 1:
+                    ctx.textAlign = 'left'
+                    break;
+                case 2:
+                    ctx.textAlign = 'right'
+                    break;
+            }
+            //設定旋轉
+            ctx.save();
+            if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
+            wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16);
+            if (text.rotate !== 0) ctx.restore()
+            // ctx.fillText(text_context, locationX, locationY, rictWidth);
         }
-        //設定對齊
-        switch (text.alignment) {
-            case 0:
-                ctx.textAlign = 'center'
-                break;
-            case 1:
-                ctx.textAlign = 'left'
-                break;
-            case 2:
-                ctx.textAlign = 'right'
-                break;
-        }
-        //設定旋轉
-        ctx.save();
-        if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
-        wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16);
-        if (text.rotate !== 0) ctx.restore()
-        // ctx.fillText(text_context, locationX, locationY, rictWidth);
-    }
+        resolve()
+    })
+
 }
 
 //繪製角色
@@ -78,6 +83,7 @@ export async function drawAccessories(ctx, data) {
 function drawThings(ctx, src, size, location) {
     const img = new Image();
     img.src = src; //設定URL
+    img.crossOrigin="anonymous" //設定後才能轉成圖片
     const percentagesize = size / 100; //設定Size
     const locationX = parseInt(location.split(",")[0]); //設定X位置
     const locationY = parseInt(location.split(",")[1]); //設定Y位置

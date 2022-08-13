@@ -1,13 +1,13 @@
 import { useParams } from 'react-router-dom';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { drawBackgroundImage, drawText, drawAccessories, drawCharacter } from './../functions/draw';
 
 function Storyviewer() {
 
     const { bookid } = useParams();
     const [total_page_number, settotal_page_number] = useState(0);
-    const [page_number, setpage_number] = useState(0);
-    const [book_page_content, setbook_page_content] = useState([]);
+    const [page_number, setpage_number] = useState(Infinity);
+    const [book_images, setbook_images] = useState([]);
     const [is_button_disabled, setis_button_disabled] = useState(false);
 
     //取得所有的書籍內容
@@ -17,88 +17,38 @@ function Storyviewer() {
                 return res.json();
             })
             .then((res) => {
-                setbook_page_content(res.book_pages);
                 settotal_page_number(res.book_pages.length);
+                draw(res.book_pages)
             })
             .catch((err) => {
                 console.log("error message:", err);
             })
     }, [])
 
-    //繪畫Function
-    const draw = async () => {
-        const currentContent = book_page_content[page_number];
-        console.log("doDraw");
-        console.log("currentContent", currentContent);
-
-        const canvas = document.getElementById("preview");
-        const ctx = canvas.getContext("2d"); //取得Dom元素
-
-        ctx.clearRect(0, 0, canvas.innerWidth, canvas.innerHeight) //清空畫布
-
-        //防止還未取得資料時執行
-        if (!currentContent) {
-            setis_button_disabled(false); //將按鈕啟動
-            return
-        }
-
-        await drawBackgroundImage(ctx, currentContent) //繪製底圖
-        await drawAccessories(ctx, currentContent); //繪製配件
-        await drawCharacter(ctx, currentContent); //繪製角色
-        drawText(ctx, currentContent); //繪製文字
-
-        setis_button_disabled(false); //繪畫完成後即可跨到下一頁
-    }
-
-
-    //處理RWD
-    const [windowWidth, setwindowWidth] = useState(window.innerWidth);
-    const debounce = (func) => {
-        let timer;
-        return () => {
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(func, 1000);
-        };
-    }
-    useEffect(() => {
-        handleSetPage(0);
-        resize();
-        window.addEventListener("resize", debounce(() => {
-            resize();
-            setwindowWidth(window.innerWidth);
-        }));
-    }, []);
-
-    const resize = useCallback(() => {
-        const canvas = document.getElementById("preview");
-        const ctx = canvas.getContext("2d"); //取得Dom元素
+    const resizeImage = () => {
+        const image = document.querySelectorAll("img")[0];
         let scaleX
         let scaleY
-        console.log("setCanvasSize");
 
-        //原尺寸2224 * 1668
-        ctx.resetTransform();
+        //取得使用者的視窗大小使Image等於視窗大小的0.9
+        let resized_image_width = window.innerWidth * 0.9
 
-        //取得使用者的視窗大小使Canvas等於視窗大小的0.9
-        let resizedCanvasWidth = window.innerWidth * 0.9
+        //透過比例算出照片適合高度
+        let ratio = resized_image_width / 2224;
+        let resized_image_height = 1668 * ratio
 
-        //透過比例算出畫布適合高度
-        let ratio = resizedCanvasWidth / 2224;
-        let resizedCanvasHeight = 1668 * ratio
-
-        if (resizedCanvasHeight > window.innerHeight) {
-            resizedCanvasHeight = window.innerHeight
-            ratio = resizedCanvasHeight / 1668
-            resizedCanvasWidth = 2224 * ratio
+        if (resized_image_height > window.innerHeight) {
+            resized_image_height = window.innerHeight
+            ratio = resized_image_height / 1668
+            resized_image_width = 2224 * ratio
         }
 
 
-        //設定畫布大小及縮放
-        ctx.canvas.width = resizedCanvasWidth;
-        ctx.canvas.height = resizedCanvasHeight;
-        scaleX = resizedCanvasWidth / 2224
-        scaleY = resizedCanvasHeight / 1668;
-        ctx.scale(scaleX, scaleY);
+        //設定照片大小及縮放
+        image.style.width = `${resized_image_width}px`;
+        image.style.height = `${resized_image_height}px`;
+        scaleX = resized_image_width / 2224
+        scaleY = resized_image_height / 1668;
 
 
         //設定按鈕大小
@@ -114,32 +64,82 @@ function Storyviewer() {
         nextButton.style.height = `${resizedButtonSize}px`;
 
         //設定按鈕位置
-        const buttonTop = resizedCanvasHeight - resizedButtonSize;
+        const buttonTop = resized_image_height - resizedButtonSize;
         prevButton.style.top = `${buttonTop}px`;
         prevButton.style.left = `${100 * scaleX}px`;
 
-        const canvasWidth = document.getElementById("preview").width;
+        const imgWidth = document.querySelectorAll("img")[0].width;
 
         nextButton.style.top = `${buttonTop}px`;
-        nextButton.style.left = `${canvasWidth - (100 * scaleX) - resizedButtonSize}px`;
-    }, [windowWidth])
+        nextButton.style.left = `${imgWidth - (100 * scaleX) - resizedButtonSize}px`;
+    }
 
+    const finishedDraw = () => {
+        const canvas = document.getElementById("preview")
+        console.log(`%c Replace`, "color:red;font-size:25px")
+        canvas?.replaceWith(new Image())
+        resizeImage()
+        handleSetPage(0);
+        window.addEventListener("resize", debounce(() => {
+            resizeImage()
+        }));
+    }
 
-    //換頁時重新繪畫
-    useEffect(() => {
+    //繪畫Function
+    const draw = async (book_page_content) => {
+        const canvas = document.getElementById("preview");
+        const ctx = canvas.getContext("2d"); //取得Dom元素
+        console.log(`%c Log`, "color:red;font-size:25px")
+        for (let i = 0; i < book_page_content.length; i++) {
 
-        draw();
+            const currentContent = book_page_content[i];
+            console.log("doDraw");
+            console.log("currentContent", currentContent);
 
-        return () => {
-            //未載入畫面前不可前往下一頁
-            setis_button_disabled(true);
+            ctx.clearRect(0, 0, canvas.innerWidth, canvas.innerHeight) //清空畫布
+
+            //防止還未取得資料時執行
+            if (!currentContent) {
+                setis_button_disabled(false); //將按鈕啟動
+                return
+            }
+
+            await drawBackgroundImage(ctx, currentContent) //繪製底圖
+            await drawAccessories(ctx, currentContent); //繪製配件
+            await drawCharacter(ctx, currentContent); //繪製角色
+            await drawText(ctx, currentContent); //繪製文字
+
+            const image_url = canvas.toDataURL("image/jpeg", 1.0);
+            setbook_images(book_images => [...book_images, image_url])
+
+            if (i === book_page_content.length - 1) {
+                finishedDraw()
+            }
         }
-    }, [page_number, book_page_content, resize]);
+    }
+
+
+    //處理RWD
+    const debounce = (func) => {
+        let timer;
+        return () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(func, 1000);
+        };
+    }
+
+    //處理換頁
+    useEffect(() => {
+        if (page_number === Infinity) return 
+        const image = document.querySelectorAll("img")[0]
+        image.src = book_images[page_number]
+    }, [page_number])
+
 
     const handleSetPage = (_page_number) => {
 
         setpage_number(_page_number)
-        console.log("page",page_number)
+        console.log("page", page_number)
 
         document.querySelectorAll("button.btn-prev")[0].style.display = "block"
         document.querySelectorAll("button.btn-next")[0].style.display = "block"
