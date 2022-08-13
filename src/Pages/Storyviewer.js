@@ -74,6 +74,7 @@ function Storyviewer() {
         nextButton.style.left = `${imgWidth - (100 * scaleX) - resizedButtonSize}px`;
     }
 
+    //Execute when draw is over
     const finishedDraw = () => {
         const canvas = document.getElementById("preview")
         console.log(`%c Replace`, "color:red;font-size:25px")
