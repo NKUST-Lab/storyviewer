@@ -36,6 +36,16 @@ canvas{
   background-size: cover;
 }
 
+.btn-face{
+  position: absolute;
+  width: 75px;
+  height: 75px;
+  cursor: pointer;
+  display: block;
+  background-color: gray;
+  border-radius: 200px;
+}
+
 .btn-page.btn-prev{
   background-image: url("../src/imgs/btn_previous.png");
 }

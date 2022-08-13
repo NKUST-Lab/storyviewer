@@ -6,9 +6,9 @@ function Storyviewer() {
 
     const { bookid } = useParams();
     const [total_page_number, settotal_page_number] = useState(0);
+    const [All_book_content, setAll_book_content] = useState([]);
     const [page_number, setpage_number] = useState(Infinity);
     const [book_images, setbook_images] = useState([]);
-    const [is_button_disabled, setis_button_disabled] = useState(false);
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -19,6 +19,7 @@ function Storyviewer() {
             .then((res) => {
                 settotal_page_number(res.book_pages.length);
                 draw(res.book_pages)
+                setAll_book_content(res.book_pages);
             })
             .catch((err) => {
                 console.log("error message:", err);
@@ -72,6 +73,10 @@ function Storyviewer() {
 
         nextButton.style.top = `${buttonTop}px`;
         nextButton.style.left = `${imgWidth - (100 * scaleX) - resizedButtonSize}px`;
+
+        const faceButton = document.getElementsByClassName("btn-face")[0];
+        faceButton.style.left = `${100 * scaleX}px`;
+        faceButton.style.top = `${100 * scaleY}px`;
     }
 
     //Execute when draw is over
@@ -91,6 +96,7 @@ function Storyviewer() {
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
         console.log(`%c Log`, "color:red;font-size:25px")
+        setbook_images([])
         for (let i = 0; i < book_page_content.length; i++) {
 
             const currentContent = book_page_content[i];
@@ -98,12 +104,6 @@ function Storyviewer() {
             console.log("currentContent", currentContent);
 
             ctx.clearRect(0, 0, canvas.innerWidth, canvas.innerHeight) //清空畫布
-
-            //防止還未取得資料時執行
-            if (!currentContent) {
-                setis_button_disabled(false); //將按鈕啟動
-                return
-            }
 
             await drawBackgroundImage(ctx, currentContent) //繪製底圖
             await drawAccessories(ctx, currentContent); //繪製配件
@@ -131,7 +131,7 @@ function Storyviewer() {
 
     //處理換頁
     useEffect(() => {
-        if (page_number === Infinity) return 
+        if (page_number === Infinity) return
         const image = document.querySelectorAll("img")[0]
         image.src = book_images[page_number]
     }, [page_number])
@@ -157,14 +157,49 @@ function Storyviewer() {
 
     }
 
+    const replaceCharacterToUser = () => {
+        return new Promise((resolve, reject) => {
+            fetch("https://toysrbooks.com/dev/v0.1/getUserRole.php?token=eyJhbGciOiJIUzIEc9mz")
+                .then(res => {
+                    return res.json()
+                })
+                .then(res => {
+                    const all_book_content = [...All_book_content]
+                    all_book_content.map(page_content => {
+                        page_content.character.map((character, i) => {
+                            const user_mood_photo = character.mood === 1 ? res.roles[i].face_photo_happy_url : res.roles[i].face_photo_sad_url
+                            character.source_url = user_mood_photo
+                        })
+                    })
+                    resolve(all_book_content)
+                })
+                .catch(err => {
+                    reject(err)
+                })
+        })
+    }
+
+    const handleSetFace = async () => {
+        const userface_book_content = await replaceCharacterToUser()
+        const img = document.querySelectorAll("img")[0]
+        console.log(`%c Replace`, "color:red;font-size:25px")
+        const canvas = document.createElement('canvas')
+        canvas.id = "preview"
+        canvas.width = "2224"
+        canvas.height = "1668"
+        img.replaceWith(canvas)
+        draw(userface_book_content)
+    }
+
 
     return (
         <div className='container'>
             <canvas id="preview" width="2224" height="1668">
                 無此內容!
             </canvas>
-            <button className="btn-page btn-prev" disabled={is_button_disabled} onClick={() => handleSetPage(page_number - 1)}></button>
-            <button className="btn-page btn-next" disabled={is_button_disabled} onClick={() => handleSetPage(page_number + 1)}></button>
+            <button className="btn-face" onClick={handleSetFace}>Original / Change</button>
+            <button className="btn-page btn-prev" onClick={() => handleSetPage(page_number - 1)}></button>
+            <button className="btn-page btn-next" onClick={() => handleSetPage(page_number + 1)}></button>
         </div>
     );
 }
