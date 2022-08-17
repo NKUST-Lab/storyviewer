@@ -3,7 +3,7 @@
 export function drawBackgroundImage(ctx, data) {
     const img = new Image();
     img.src = data.page_photo_url;
-    img.crossOrigin="anonymous" //設定後才能轉成圖片
+    img.crossOrigin = "anonymous" //設定後才能轉成圖片
     return (
         new Promise((resolve) => {
             img.addEventListener("load", () => {
@@ -66,7 +66,7 @@ export async function drawCharacter(ctx, data) {
     if (data.character == undefined) return
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, character.source_size || 100, character.source_location);
+        await drawThings(ctx, character.source_url, character.iscustom_face ? character.size : 100, character.source_location);
     }
 }
 
@@ -83,7 +83,7 @@ export async function drawAccessories(ctx, data) {
 function drawThings(ctx, src, size, location) {
     const img = new Image();
     img.src = src; //設定URL
-    img.crossOrigin="anonymous" //設定後才能轉成圖片
+    img.crossOrigin = "anonymous" //設定後才能轉成圖片
     const percentagesize = size / 100; //設定Size
     const locationX = parseInt(location.split(",")[0]); //設定X位置
     const locationY = parseInt(location.split(",")[1]); //設定Y位置

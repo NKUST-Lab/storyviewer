@@ -169,6 +169,7 @@ function Storyviewer() {
                         page_content.character.map((character, i) => {
                             const user_mood_photo = character.mood === 1 ? res.roles[i].face_photo_happy_url : res.roles[i].face_photo_sad_url
                             character.source_url = user_mood_photo
+                            character.iscustom_face = true
                         })
                     })
                     resolve(all_book_content)
