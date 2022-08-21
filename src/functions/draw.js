@@ -62,11 +62,12 @@ export function drawText(ctx, data) {
 }
 
 //繪製角色
-export async function drawCharacter(ctx, data) {
+export async function drawCharacter(ctx, data , isCustomFace) {
     if (data.character == undefined) return
+    console.log("Doing draw iscustomface is ",isCustomFace)
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, character.iscustom_face ? character.size : 100, character.source_location);
+        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, character.source_location);
     }
 }
 
@@ -97,7 +98,6 @@ function drawThings(ctx, src, size, location) {
             })
             img.onerror = () => {
                 console.warn(`draw things error occured`);
-                console.warn(`error url ${img.src}`);
                 resolve();
             }
         })
@@ -108,7 +108,6 @@ function drawThings(ctx, src, size, location) {
 const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
     const words = text.trim().split(' ');
     let line = '';
-    console.log(`words${words}`)
     for (let [index, w] of words.entries()) {
         ctx.font = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? `bold ${ctx.font}` : ctx.font;
         w = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? w.substring(2, w.length - 1) : w

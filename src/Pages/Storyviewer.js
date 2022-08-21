@@ -7,8 +7,10 @@ function Storyviewer() {
     const { bookid } = useParams();
     const [total_page_number, settotal_page_number] = useState(0);
     const [All_book_content, setAll_book_content] = useState([]);
+    const [customFace_All_book_content, setcustomFace_All_book_content] = useState([]);
     const [page_number, setpage_number] = useState(Infinity);
     const [book_images, setbook_images] = useState([]);
+    const [isCustomFace, setisCustomFace] = useState(false)
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -17,14 +19,21 @@ function Storyviewer() {
                 return res.json();
             })
             .then((res) => {
+                console.log(res.book_pages)
                 settotal_page_number(res.book_pages.length);
-                draw(res.book_pages)
-                setAll_book_content(res.book_pages);
+                setAll_book_content([...res.book_pages]);
             })
             .catch((err) => {
                 console.log("error message:", err);
             })
     }, [])
+
+    useEffect(() => {
+        if (!All_book_content) return
+        draw(All_book_content)
+    }, [All_book_content])
+
+
 
     const resizeImage = () => {
         const image = document.querySelectorAll("img")[0];
@@ -82,7 +91,7 @@ function Storyviewer() {
     //Execute when draw is over
     const finishedDraw = () => {
         const canvas = document.getElementById("preview")
-        console.log(`%c Replace`, "color:red;font-size:25px")
+        console.log(`%c finished draw replace canvas to img`, "color:red;font-size:25px")
         canvas?.replaceWith(new Image())
         resizeImage()
         handleSetPage(0);
@@ -95,7 +104,6 @@ function Storyviewer() {
     const draw = async (book_page_content) => {
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
-        console.log(`%c Log`, "color:red;font-size:25px")
         setbook_images([])
         for (let i = 0; i < book_page_content.length; i++) {
 
@@ -106,8 +114,8 @@ function Storyviewer() {
             ctx.clearRect(0, 0, canvas.innerWidth, canvas.innerHeight) //清空畫布
 
             await drawBackgroundImage(ctx, currentContent) //繪製底圖
-            await drawAccessories(ctx, currentContent); //繪製配件
-            await drawCharacter(ctx, currentContent); //繪製角色
+            // await drawAccessories(ctx, currentContent); //繪製配件
+            await drawCharacter(ctx, currentContent, isCustomFace); //繪製角色
             await drawText(ctx, currentContent); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
@@ -157,40 +165,48 @@ function Storyviewer() {
 
     }
 
-    const replaceCharacterToUser = () => {
-        return new Promise((resolve, reject) => {
-            fetch("https://toysrbooks.com/dev/v0.1/getUserRole.php?token=eyJhbGciOiJIUzIEc9mz")
-                .then(res => {
-                    return res.json()
+    const replaceCharacterToUser = async (all_book_content) => {
+        return fetch("https://toysrbooks.com/dev/v0.1/getUserRole.php?token=eyJhbGciOiJIUzIEc9mz")
+            .then(res => {
+                return res.json()
+            })
+            .then(res => {
+                const customface_all_book_content = all_book_content.map(page_content => {
+                    const replaced_page_content = page_content.character.map((character, i) => ({
+                        ...character,
+                        source_url: character.mood === 1 ? res.roles[i].face_photo_happy_url : res.roles[i].face_photo_sad_url
+                    }))
+                    return { ...page_content, character: replaced_page_content }
                 })
-                .then(res => {
-                    const all_book_content = [...All_book_content]
-                    all_book_content.map(page_content => {
-                        page_content.character.map((character, i) => {
-                            const user_mood_photo = character.mood === 1 ? res.roles[i].face_photo_happy_url : res.roles[i].face_photo_sad_url
-                            character.source_url = user_mood_photo
-                            character.iscustom_face = true
-                        })
-                    })
-                    resolve(all_book_content)
-                })
-                .catch(err => {
-                    reject(err)
-                })
-        })
+                return customface_all_book_content
+            })
+            .catch(err => {
+                console.warn(err)
+            })
+
     }
 
-    const handleSetFace = async () => {
-        const userface_book_content = await replaceCharacterToUser()
-        const img = document.querySelectorAll("img")[0]
-        console.log(`%c Replace`, "color:red;font-size:25px")
-        const canvas = document.createElement('canvas')
-        canvas.id = "preview"
-        canvas.width = "2224"
-        canvas.height = "1668"
-        img.replaceWith(canvas)
-        draw(userface_book_content)
-    }
+
+
+    useEffect(() => {
+
+        const handleSetFace = async () => {
+            const img = document.querySelectorAll("img")[0]
+            console.log(`%c handleSetFace`, "color:red;font-size:25px")
+            const canvas = document.createElement('canvas')
+            canvas.id = "preview"
+            canvas.width = "2224"
+            canvas.height = "1668"
+            img.replaceWith(canvas)
+
+            const customface_book_content = await replaceCharacterToUser([...All_book_content])
+            console.log(customface_book_content)
+            draw(isCustomFace ? customface_book_content : All_book_content)
+        }
+        handleSetFace()
+
+    }, [isCustomFace])
+
 
 
     return (
@@ -198,7 +214,7 @@ function Storyviewer() {
             <canvas id="preview" width="2224" height="1668">
                 無此內容!
             </canvas>
-            <button className="btn-face" onClick={handleSetFace}>Original / Change</button>
+            <button className="btn-face" onClick={() => setisCustomFace(!isCustomFace)}>Original / Change</button>
             <button className="btn-page btn-prev" onClick={() => handleSetPage(page_number - 1)}></button>
             <button className="btn-page btn-next" onClick={() => handleSetPage(page_number + 1)}></button>
         </div>
