@@ -114,8 +114,8 @@ function Storyviewer() {
             ctx.clearRect(0, 0, canvas.innerWidth, canvas.innerHeight) //清空畫布
 
             await drawBackgroundImage(ctx, currentContent) //繪製底圖
-            // await drawAccessories(ctx, currentContent); //繪製配件
             await drawCharacter(ctx, currentContent, isCustomFace); //繪製角色
+            if (isCustomFace) await drawAccessories(ctx, currentContent); //繪製配件
             await drawText(ctx, currentContent); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);

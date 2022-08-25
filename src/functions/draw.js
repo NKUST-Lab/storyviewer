@@ -67,7 +67,7 @@ export async function drawCharacter(ctx, data , isCustomFace) {
     console.log("Doing draw iscustomface is ",isCustomFace)
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, character.source_location);
+        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location :character.source_location);
     }
 }
 
