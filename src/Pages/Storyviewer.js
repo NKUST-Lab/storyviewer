@@ -7,7 +7,6 @@ function Storyviewer() {
     const { bookid } = useParams();
     const [total_page_number, settotal_page_number] = useState(0);
     const [All_book_content, setAll_book_content] = useState([]);
-    const [customFace_All_book_content, setcustomFace_All_book_content] = useState([]);
     const [page_number, setpage_number] = useState(Infinity);
     const [book_images, setbook_images] = useState([]);
     const [isCustomFace, setisCustomFace] = useState(false)
@@ -29,11 +28,15 @@ function Storyviewer() {
     }, [])
 
     useEffect(() => {
+        if (book_images.length === 0) return
+        finishedDraw()
+    }, [book_images])
+
+
+    useEffect(() => {
         if (!All_book_content) return
         draw(All_book_content)
     }, [All_book_content])
-
-
 
     const resizeImage = () => {
         const image = document.querySelectorAll("img")[0];
@@ -94,7 +97,11 @@ function Storyviewer() {
         console.log(`%c finished draw replace canvas to img`, "color:red;font-size:25px")
         canvas?.replaceWith(new Image())
         resizeImage()
-        handleSetPage(0);
+        if (page_number === Infinity) {
+            handleSetPage(0);
+        } else {
+            handleSetPage(page_number);
+        }
         window.addEventListener("resize", debounce(() => {
             resizeImage()
         }));
@@ -105,6 +112,7 @@ function Storyviewer() {
         const canvas = document.getElementById("preview");
         const ctx = canvas.getContext("2d"); //取得Dom元素
         setbook_images([])
+        let temp_book_image = []
         for (let i = 0; i < book_page_content.length; i++) {
 
             const currentContent = book_page_content[i];
@@ -119,10 +127,10 @@ function Storyviewer() {
             await drawText(ctx, currentContent); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
-            setbook_images(book_images => [...book_images, image_url])
+            temp_book_image = [...temp_book_image, image_url]
 
             if (i === book_page_content.length - 1) {
-                finishedDraw()
+                setbook_images(temp_book_image)
             }
         }
     }
@@ -138,17 +146,17 @@ function Storyviewer() {
     }
 
     //處理換頁
-    useEffect(() => {
-        if (page_number === Infinity) return
+    const showImageOnScreen = (_page_number) => {
         const image = document.querySelectorAll("img")[0]
-        image.src = book_images[page_number]
-    }, [page_number])
+        image.src = book_images[_page_number]
+    }
 
-
+    //處理換頁
     const handleSetPage = (_page_number) => {
 
         setpage_number(_page_number)
-        console.log("page", page_number)
+        showImageOnScreen(_page_number)
+        console.log("page", _page_number)
 
         document.querySelectorAll("button.btn-prev")[0].style.display = "block"
         document.querySelectorAll("button.btn-next")[0].style.display = "block"
