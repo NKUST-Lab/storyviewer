@@ -62,12 +62,12 @@ export function drawText(ctx, data) {
 }
 
 //繪製角色
-export async function drawCharacter(ctx, data , isCustomFace) {
+export async function drawCharacter(ctx, data, isCustomFace) {
     if (data.character == undefined) return
-    console.log("Doing draw iscustomface is ",isCustomFace)
+    console.log("Doing draw iscustomface is ", isCustomFace)
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location :character.source_location);
+        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, character.rotate);
     }
 }
 
@@ -76,12 +76,12 @@ export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
     for (let i = 0; i < data.accessories.length; i++) {
         const accessory = data.accessories[i];
-        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location);
+        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate);
     }
 }
 
 //圖形繪製
-function drawThings(ctx, src, size, location) {
+function drawThings(ctx, src, size, location, rotate) {
     const img = new Image();
     img.src = src; //設定URL
     img.crossOrigin = "anonymous" //設定後才能轉成圖片
@@ -93,7 +93,10 @@ function drawThings(ctx, src, size, location) {
             img.addEventListener("load", () => {
                 const resizeWidth = img.width * percentagesize;
                 const resizeHeight = img.height * percentagesize;
+                ctx.save();
+                if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180); //設定旋轉
                 ctx.drawImage(img, locationX - resizeWidth / 2, locationY - resizeHeight / 2, resizeWidth, resizeHeight);
+                if (rotate !== 0) ctx.restore()
                 resolve();
             })
             img.onerror = () => {
