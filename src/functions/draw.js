@@ -18,7 +18,7 @@ export function drawBackgroundImage(ctx, data) {
 }
 
 //繪製文字
-export function drawText(ctx, data) {
+export function drawText(ctx, data, isCustomFace) {
     if (data.text == undefined) return
     return new Promise(resolve => {
         for (let i = 0; i < data.text.length; i++) {
@@ -52,7 +52,7 @@ export function drawText(ctx, data) {
             //設定旋轉
             ctx.save();
             if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
-            wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16);
+            wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
             if (text.rotate !== 0) ctx.restore()
             // ctx.fillText(text_context, locationX, locationY, rictWidth);
         }
@@ -108,12 +108,12 @@ function drawThings(ctx, src, size, location, rotate) {
 }
 
 //會自動換行的fillText
-const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
+const wrapText = (ctx, text, x, y, maxWidth, lineHeight, book_characters, isCustomFace) => {
     const words = text.trim().split(' ');
     let line = '';
     for (let [index, w] of words.entries()) {
         ctx.font = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? `bold ${ctx.font}` : ctx.font;
-        w = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? w.substring(2, w.length - 1) : w
+        w = replaceCharacterText(w, book_characters, isCustomFace)
         const testLine = line + w + ' ';
         const metrics = ctx.measureText(testLine);
         const testWidth = metrics.width;
@@ -126,4 +126,72 @@ const wrapText = (ctx, text, x, y, maxWidth, lineHeight) => {
         }
     }
     ctx.fillText(line, x, y);
+}
+
+const replaceCharacterText = (w, book_characters, isCustomFace) => {
+    //粗體
+    if (w.substring(0, 2) === "##" && w.slice(-2) === "##") {
+        return w.substring(2, w.length - 1)
+    }
+
+    //改變文字內容 且 為換臉模式
+    if (w.includes('@') && isCustomFace) {
+        console.log(w, "have @")
+        const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
+        const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
+
+        // @1 or @2 -> 客戶名稱
+        if (/^@\d$/.test(clean_word)) {
+            for (const char of book_characters) {
+                if (char.character_number === rolenumber) {
+                    console.log("return",w.replace(/@\d+/, char.role_name))
+                    return w.replace(/@\d+/, char.role_name)
+                }
+            }
+        }
+
+        // @1he_she or @1him_her or @1his_her -> 客戶主詞 受詞 所有 根據客戶性別role_gender 
+        if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
+            for (const char of book_characters) {
+                if (char.character_number === rolenumber) {
+                    console.log(`male ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] } female ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]}`)
+                    const replace_word = char.role_gender === "M" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
+                    console.log("return",w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word))
+                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
+                }
+            }
+        }
+    }
+
+    //改變文字內容 且 非換臉模式
+    if (w.includes('@') && !isCustomFace) {
+        console.log(w, "have @")
+        const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
+        console.log("it's clean is",clean_word)
+        const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
+
+        // @1 or @2 -> 角色名稱
+        if (/^@\d$/.test(clean_word)) {
+            for (const char of book_characters) {
+                if (char.character_number === rolenumber) {
+                    console.log("return",w.replace(/@\d+/, char.character_name))
+                    return w.replace(/@\d+/, char.character_name)
+                }
+            }
+        }
+
+        // @1he_she or @1him_her or @1his_her -> 角色主詞 受詞 所有 根據角色性別character_gender
+        if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
+            for (const char of book_characters) {
+                if (char.character_number === rolenumber) {
+                    console.log(`male ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] } female ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]}`)
+                    const replace_word = char.gender === "male" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
+                    console.log("return",w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word))
+                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
+                }
+            }
+        }
+    }
+
+    return w
 }

@@ -17,15 +17,29 @@ function Storyviewer() {
             .then((res) => {
                 return res.json();
             })
-            .then((res) => {
-                console.log(res.book_pages)
-                settotal_page_number(res.book_pages.length);
-                setAll_book_content([...res.book_pages]);
+            .then(async (res) => {
+                const allbook_content_character_detailed = await fetchCharacterDetail(res.book_pages)
+                console.log(allbook_content_character_detailed)
+                settotal_page_number(allbook_content_character_detailed.length);
+                setAll_book_content(allbook_content_character_detailed);
             })
             .catch((err) => {
                 console.log("error message:", err);
             })
     }, [])
+
+    const fetchCharacterDetail = async (all_book_pages) => {
+        return fetch(`https://toysrbooks.com/dev/v0.1/getBookCharacter.php?book_id=${bookid}&token=eyJhbGciOiJIUzIEc9mz`)
+            .then(res => {
+                return res.json();
+            })
+            .then(res => {
+                const newAll_book_pages = all_book_pages.map(page_content => {
+                    return { ...page_content, book_characters: res.book_characters }
+                })
+                return newAll_book_pages
+            })
+    }
 
     useEffect(() => {
         if (book_images.length === 0) return
@@ -124,7 +138,7 @@ function Storyviewer() {
             await drawBackgroundImage(ctx, currentContent) //繪製底圖
             await drawCharacter(ctx, currentContent, isCustomFace); //繪製角色
             if (isCustomFace) await drawAccessories(ctx, currentContent); //繪製配件
-            await drawText(ctx, currentContent); //繪製文字
+            await drawText(ctx, currentContent, isCustomFace); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
             temp_book_image = [...temp_book_image, image_url]
@@ -185,7 +199,15 @@ function Storyviewer() {
                         ...character,
                         source_url: character.mood === 1 ? res.roles[i].face_photo_happy_url : res.roles[i].face_photo_sad_url
                     }))
-                    return { ...page_content, character: replaced_page_content }
+                    const replaced_book_characters = page_content.book_characters.map((book_character, i) => {
+                        return {
+                            ...book_character,
+                            role_number: res.roles[i].role_number,
+                            role_name: res.roles[i].role_name,
+                            role_gender: res.roles[i].role_gender,
+                        }
+                    })
+                    return { ...page_content, character: replaced_page_content, book_characters: replaced_book_characters }
                 })
                 return customface_all_book_content
             })
