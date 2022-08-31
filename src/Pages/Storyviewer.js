@@ -5,10 +5,11 @@ import { drawBackgroundImage, drawText, drawAccessories, drawCharacter } from '.
 function Storyviewer() {
 
     const { bookid } = useParams();
-    const [total_page_number, settotal_page_number] = useState(0);
     const [All_book_content, setAll_book_content] = useState([]);
     const [page_number, setpage_number] = useState(Infinity);
     const [book_images, setbook_images] = useState([]);
+    const [min_page_number, setmin_page_number] = useState(Infinity);
+    const [max_page_number, setmax_page_number] = useState(0);
     const [isCustomFace, setisCustomFace] = useState(false)
 
     //取得所有的書籍內容
@@ -20,7 +21,6 @@ function Storyviewer() {
             .then(async (res) => {
                 const allbook_content_character_detailed = await fetchCharacterDetail(res.book_pages)
                 console.log(allbook_content_character_detailed)
-                settotal_page_number(allbook_content_character_detailed.length);
                 setAll_book_content(allbook_content_character_detailed);
             })
             .catch((err) => {
@@ -112,7 +112,19 @@ function Storyviewer() {
         canvas?.replaceWith(new Image())
         resizeImage()
         if (page_number === Infinity) {
-            handleSetPage(0);
+            let temp_max_page_number = 0
+            let temp_min_page_number = Infinity
+            for (const image of book_images) {
+                if (image.page_number < temp_min_page_number) {
+                    temp_min_page_number = image.page_number
+                }
+                if (image.page_number > temp_max_page_number) {
+                    temp_max_page_number = image.page_number
+                }
+            }
+            setmax_page_number(temp_max_page_number)
+            setmin_page_number(temp_min_page_number)
+            handleSetPage(temp_min_page_number);
         } else {
             handleSetPage(page_number);
         }
@@ -123,13 +135,17 @@ function Storyviewer() {
 
     //繪畫Function
     const draw = async (book_page_content) => {
-        const canvas = document.getElementById("preview");
-        const ctx = canvas.getContext("2d"); //取得Dom元素
         setbook_images([])
         let temp_book_image = []
-        for (let i = 0; i < book_page_content.length; i++) {
+        book_page_content.forEach(async(currentContent) => {
+            const canvas = document.createElement('canvas')
+            canvas.style.width = '2224px'
+            canvas.style.height = '1668px'
+            canvas.setAttribute('width', 2224)
+            canvas.setAttribute('height', 1668)
+            document.body.appendChild(canvas)
+            const ctx = canvas.getContext("2d"); //取得Dom元素
 
-            const currentContent = book_page_content[i];
             console.log("doDraw");
             console.log("currentContent", currentContent);
 
@@ -141,12 +157,13 @@ function Storyviewer() {
             await drawText(ctx, currentContent, isCustomFace); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
-            temp_book_image = [...temp_book_image, image_url]
+            temp_book_image = [...temp_book_image, {imagesrc:image_url,page_number:currentContent.book_page}]
+            canvas.remove()
 
-            if (i === book_page_content.length - 1) {
+            if (temp_book_image.length === book_page_content.length) {
                 setbook_images(temp_book_image)
             }
-        }
+        });
     }
 
 
@@ -161,8 +178,8 @@ function Storyviewer() {
 
     //處理換頁
     const showImageOnScreen = (_page_number) => {
-        const image = document.querySelectorAll("img")[0]
-        image.src = book_images[_page_number]
+        const image_element = document.querySelectorAll("img")[0]
+        image_element.src = book_images.find(image => image.page_number === _page_number).imagesrc
     }
 
     //處理換頁
@@ -175,12 +192,12 @@ function Storyviewer() {
         document.querySelectorAll("button.btn-prev")[0].style.display = "block"
         document.querySelectorAll("button.btn-next")[0].style.display = "block"
 
-        if (_page_number === 0) {
+        if (_page_number === min_page_number) {
             document.querySelectorAll("button.btn-prev")[0].style.display = "none"
             return
         }
 
-        if (_page_number === total_page_number - 1) {
+        if (_page_number === max_page_number) {
             document.querySelectorAll("button.btn-next")[0].style.display = "none"
             return
         }
