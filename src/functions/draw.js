@@ -38,21 +38,25 @@ export function drawText(ctx, data, isCustomFace) {
                 ctx.shadowOffsetY = text.shadow;
             }
             //設定對齊
+            let re_positionedX = locationX
             switch (text.alignment) {
                 case 0:
                     ctx.textAlign = 'center'
+                    re_positionedX = locationX + rictWidth / 2
                     break;
                 case 1:
                     ctx.textAlign = 'left'
+                    re_positionedX = locationX
                     break;
                 case 2:
                     ctx.textAlign = 'right'
+                    re_positionedX = locationX + rictWidth
                     break;
             }
             //設定旋轉
             ctx.save();
             if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
-            wrapText(ctx, text_context, locationX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
+            wrapText(ctx, text_context, re_positionedX , locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
             if (text.rotate !== 0) ctx.restore()
             // ctx.fillText(text_context, locationX, locationY, rictWidth);
         }
@@ -138,7 +142,6 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
 
     //改變文字內容 且 為換臉模式
     if (w.includes('@') && isCustomFace) {
-        console.log(w, "have @")
         const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
         const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
 
@@ -146,7 +149,6 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
         if (/^@\d$/.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    console.log("return",w.replace(/@\d+/, char.role_name))
                     return w.replace(/@\d+/, char.role_name)
                 }
             }
@@ -156,9 +158,7 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
         if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    console.log(`male ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] } female ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]}`)
                     const replace_word = char.role_gender === "M" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    console.log("return",w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word))
                     return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
                 }
             }
@@ -167,16 +167,13 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
 
     //改變文字內容 且 非換臉模式
     if (w.includes('@') && !isCustomFace) {
-        console.log(w, "have @")
         const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
-        console.log("it's clean is",clean_word)
         const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
 
         // @1 or @2 -> 角色名稱
         if (/^@\d$/.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    console.log("return",w.replace(/@\d+/, char.character_name))
                     return w.replace(/@\d+/, char.character_name)
                 }
             }
@@ -186,9 +183,7 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
         if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    console.log(`male ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] } female ${clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]}`)
                     const replace_word = char.gender === "male" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    console.log("return",w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word))
                     return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
                 }
             }
