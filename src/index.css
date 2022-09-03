@@ -46,6 +46,11 @@ canvas{
   border-radius: 200px;
 }
 
+#page-number{
+  position: absolute;
+  display: block;
+}
+
 .btn-page.btn-prev{
   background-image: url("../src/imgs/btn_previous.png");
 }

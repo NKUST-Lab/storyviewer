@@ -95,14 +95,21 @@ function Storyviewer() {
         prevButton.style.top = `${buttonTop}px`;
         prevButton.style.left = `${100 * scaleX}px`;
 
-        const imgWidth = document.querySelectorAll("img")[0].width;
+        const img_element = document.querySelectorAll("img")[0]
 
         nextButton.style.top = `${buttonTop}px`;
-        nextButton.style.left = `${imgWidth - (100 * scaleX) - resizedButtonSize}px`;
+        nextButton.style.left = `${img_element.width - (100 * scaleX) - resizedButtonSize}px`;
 
         const faceButton = document.getElementsByClassName("btn-face")[0];
         faceButton.style.left = `${100 * scaleX}px`;
         faceButton.style.top = `${100 * scaleY}px`;
+
+        //設定頁碼位置
+        const page_element = document.getElementById('page-number')
+        const font_size = resizedButtonSize / 4
+        page_element.style.fontSize = `${font_size}px`
+        page_element.style.top = `${resized_image_height - resizedButtonSize *3/5}px`
+        page_element.style.left = `${img_element.width - font_size}px`
     }
 
     //Execute when draw is over
@@ -137,7 +144,7 @@ function Storyviewer() {
     const draw = async (book_page_content) => {
         setbook_images([])
         let temp_book_image = []
-        book_page_content.forEach(async(currentContent) => {
+        book_page_content.forEach(async (currentContent) => {
             const canvas = document.createElement('canvas')
             canvas.style.width = '2224px'
             canvas.style.height = '1668px'
@@ -157,7 +164,7 @@ function Storyviewer() {
             await drawText(ctx, currentContent, isCustomFace); //繪製文字
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
-            temp_book_image = [...temp_book_image, {imagesrc:image_url,page_number:currentContent.book_page}]
+            temp_book_image = [...temp_book_image, { imagesrc: image_url, page_number: currentContent.book_page }]
             canvas.remove()
 
             if (temp_book_image.length === book_page_content.length) {
@@ -187,6 +194,7 @@ function Storyviewer() {
 
         setpage_number(_page_number)
         showImageOnScreen(_page_number)
+        document.getElementById('page-number').innerText = _page_number
         console.log("page", _page_number)
 
         document.querySelectorAll("button.btn-prev")[0].style.display = "block"
@@ -265,6 +273,7 @@ function Storyviewer() {
             <button className="btn-face" onClick={() => setisCustomFace(!isCustomFace)}>Original / Change</button>
             <button className="btn-page btn-prev" onClick={() => handleSetPage(page_number - 1)}></button>
             <button className="btn-page btn-next" onClick={() => handleSetPage(page_number + 1)}></button>
+            <p id='page-number'></p>
         </div>
     );
 }
