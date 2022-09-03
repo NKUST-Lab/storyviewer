@@ -67,7 +67,7 @@ export async function drawCharacter(ctx, data, isCustomFace) {
     console.log("Doing draw iscustomface is ", isCustomFace)
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, character.rotate);
+        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0 , isCustomFace);
     }
 }
 
@@ -76,12 +76,12 @@ export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
     for (let i = 0; i < data.accessories.length; i++) {
         const accessory = data.accessories[i];
-        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate);
+        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate , true);
     }
 }
 
 //圖形繪製
-function drawThings(ctx, src, size, location, rotate) {
+function drawThings(ctx, src, size, location, rotate , isCustomface = false) {
     const img = new Image();
     img.src = src; //設定URL
     img.crossOrigin = "anonymous" //設定後才能轉成圖片
@@ -94,9 +94,11 @@ function drawThings(ctx, src, size, location, rotate) {
                 const resizeWidth = img.width * percentagesize;
                 const resizeHeight = img.height * percentagesize;
                 ctx.save();
-                if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180); //設定旋轉
-                ctx.drawImage(img, locationX - resizeWidth / 2, locationY - resizeHeight / 2, resizeWidth, resizeHeight);
-                if (rotate !== 0) ctx.restore()
+                //設定旋轉
+                if (rotate !== 0) ctx.translate( locationX , locationY );
+                if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180); 
+                ctx.drawImage(img, (rotate !== 0 && isCustomface) ? -resizeWidth / 2 : locationX - resizeWidth / 2, (rotate !== 0 && isCustomface) ? -resizeHeight / 2 : locationY - resizeHeight / 2, resizeWidth, resizeHeight);
+                ctx.restore()
                 resolve();
             })
             img.onerror = () => {
