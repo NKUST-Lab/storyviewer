@@ -18,6 +18,8 @@ export function drawBackgroundImage(ctx, data) {
 }
 
 //繪製文字
+let text_alignment = 'left'
+let fontStyle = ''
 export function drawText(ctx, data, isCustomFace) {
     if (data.text == undefined) return
     return new Promise(resolve => {
@@ -29,7 +31,8 @@ export function drawText(ctx, data, isCustomFace) {
             const locationY = parseInt(text.location.split(",")[1]);
             const text_context = text.book_text;
             //設置字型及大小
-            ctx.font = `${text.text_size}px Chalkboard SE Light`;
+            fontStyle = `${text.text_size}px Chalkboard SE Light`;
+            ctx.font = fontStyle
             ctx.fillStyle = text.text_color;
             //設置陰影
             if (text.shadow === 1) {
@@ -42,21 +45,25 @@ export function drawText(ctx, data, isCustomFace) {
             switch (text.alignment) {
                 case 0:
                     ctx.textAlign = 'center'
+                    text_alignment = 'center'
                     re_positionedX = locationX + rictWidth / 2
                     break;
                 case 1:
-                    ctx.textAlign = 'left'
+                    // ctx.textAlign = 'left'
+                    text_alignment = 'left'
                     re_positionedX = locationX
                     break;
                 case 2:
-                    ctx.textAlign = 'right'
+                    // ctx.textAlign = 'right'
+                    text_alignment = 'right'
                     re_positionedX = locationX + rictWidth
                     break;
             }
+            ctx.textAlign = 'left'
             //設定旋轉
             ctx.save();
             if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
-            wrapText(ctx, text_context, re_positionedX , locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
+            wrapText(ctx, text_context, re_positionedX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
             if (text.rotate !== 0) ctx.restore()
             // ctx.fillText(text_context, locationX, locationY, rictWidth);
         }
@@ -71,7 +78,7 @@ export async function drawCharacter(ctx, data, isCustomFace) {
     console.log("Doing draw iscustomface is ", isCustomFace)
     for (let i = 0; i < data.character.length; i++) {
         const character = data.character[i];
-        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0 , isCustomFace);
+        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);
     }
 }
 
@@ -80,12 +87,12 @@ export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
     for (let i = 0; i < data.accessories.length; i++) {
         const accessory = data.accessories[i];
-        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate , true);
+        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate, true);
     }
 }
 
 //圖形繪製
-function drawThings(ctx, src, size, location, rotate , isCustomface = false) {
+function drawThings(ctx, src, size, location, rotate, isCustomface = false) {
     const img = new Image();
     img.src = src; //設定URL
     img.crossOrigin = "anonymous" //設定後才能轉成圖片
@@ -99,8 +106,8 @@ function drawThings(ctx, src, size, location, rotate , isCustomface = false) {
                 const resizeHeight = img.height * percentagesize;
                 ctx.save();
                 //設定旋轉
-                if (rotate !== 0) ctx.translate( locationX , locationY );
-                if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180); 
+                if (rotate !== 0) ctx.translate(locationX, locationY);
+                if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180);
                 ctx.drawImage(img, (rotate !== 0 && isCustomface) ? -resizeWidth / 2 : locationX - resizeWidth / 2, (rotate !== 0 && isCustomface) ? -resizeHeight / 2 : locationY - resizeHeight / 2, resizeWidth, resizeHeight);
                 ctx.restore()
                 resolve();
@@ -115,23 +122,58 @@ function drawThings(ctx, src, size, location, rotate , isCustomface = false) {
 
 //會自動換行的fillText
 const wrapText = (ctx, text, x, y, maxWidth, lineHeight, book_characters, isCustomFace) => {
-    const words = text.trim().split(' ');
-    let line = '';
-    for (let [index, w] of words.entries()) {
-        ctx.font = w.substring(0, 2) === "##" && w.slice(-2) === "##" ? `bold ${ctx.font}` : ctx.font;
-        w = replaceCharacterText(w, book_characters, isCustomFace)
-        const testLine = line + w + ' ';
-        const metrics = ctx.measureText(testLine);
-        const testWidth = metrics.width;
-        if (testWidth > maxWidth && index > 0) {
-            ctx.fillText(line, x, y);
-            line = w + ' ';
-            y += lineHeight;
-        } else {
-            line = testLine;
+    //遇到分行符號換行
+    for (const words of text.trim().split('\n')) {
+        let line = '';
+        for (let [index, w] of words.split(' ').entries()) {
+            w = replaceCharacterText(w, book_characters, isCustomFace)
+            const testLine = line + w + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && index > 0) {
+                printLine(ctx, x, y, line, maxWidth)
+                line = w + ' ';
+                y += lineHeight;
+            } else {
+                line = testLine;
+            }
         }
+        printLine(ctx, x, y, line, maxWidth, false)
+        y += lineHeight
     }
-    ctx.fillText(line, x, y);
+}
+
+const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
+    let prevwidth = x
+    //為向右對齊時用不同方式畫
+    if (text_alignment === 'right') {
+        const reversed_line = line.split(' ').reverse()
+        for (let word of reversed_line) {
+            //粗體設定
+            ctx.font = fontStyle
+            if (/.*##(.*)##.*/.test(word)) {
+                //設定粗體時設定置中
+                ctx.font = `bold ${fontStyle}`
+                const regex_result = word.match(/(.*)##(.*)##(.*)/)
+                word = regex_result[1] + regex_result[2] + regex_result[3]
+            }
+            prevwidth -= ctx.measureText(' ' + word).width
+            ctx.fillText(word, prevwidth, y);
+        }
+        return
+    }
+    //確定line裡的字總寬度會達到maxWidth時 把每個字各自fillText 才可以套用格式
+    for (let word of line.split(' ')) {
+        //粗體設定
+        ctx.font = fontStyle
+        if (/.*##(.*)##.*/.test(word)) {
+            ctx.font = `bold ${fontStyle}`
+            const regex_result = word.match(/(.*)##(.*)##(.*)/)
+            word = regex_result[1] + regex_result[2] + regex_result[3]
+        }
+        ctx.fillText(word, prevwidth, y);
+        prevwidth += ctx.measureText(word + ' ').width
+    }
 }
 
 const replaceCharacterText = (w, book_characters, isCustomFace) => {
@@ -149,7 +191,7 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
         if (/^@\d$/.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    return w.replace(/@\d+/, char.role_name)
+                    return w.replace(/@\d+/, `##${char.role_name}##`)
                 }
             }
         }
@@ -159,7 +201,7 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
                     const replace_word = char.role_gender === "M" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
+                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/, replace_word)
                 }
             }
         }
@@ -184,7 +226,7 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
                     const replace_word = char.gender === "male" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/,replace_word)
+                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/, replace_word)
                 }
             }
         }
