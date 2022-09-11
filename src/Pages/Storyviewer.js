@@ -109,7 +109,7 @@ function Storyviewer() {
         const font_size = resizedButtonSize / 4
         page_element.style.fontSize = `${font_size}px`
         page_element.style.top = `${resized_image_height - resizedButtonSize *3/5}px`
-        page_element.style.left = `${img_element.width - font_size}px`
+        page_element.style.left = `${img_element.width - font_size * 2}px`
     }
 
     //Execute when draw is over
