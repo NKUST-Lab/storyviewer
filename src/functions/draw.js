@@ -35,7 +35,7 @@ export function drawText(ctx, data, isCustomFace) {
             ctx.font = fontStyle
             ctx.fillStyle = text.text_color;
             //設置陰影
-            if (text.shadow === 1) {
+            if (text.shadow !== 0) {
                 ctx.shadowColor = text.shadow_color;
                 ctx.shadowOffsetX = text.shadow;
                 ctx.shadowOffsetY = text.shadow;
@@ -46,7 +46,7 @@ export function drawText(ctx, data, isCustomFace) {
                 case 0:
                     ctx.textAlign = 'center'
                     text_alignment = 'center'
-                    re_positionedX = locationX + rictWidth / 2
+                    re_positionedX = locationX
                     break;
                 case 1:
                     // ctx.textAlign = 'left'
@@ -162,6 +162,25 @@ const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
         }
         return
     }
+
+    //向中對齊且為最後一行
+    if (!is_full_line && text_alignment === 'center') {
+        const lineWidth = ctx.measureText(line).width
+        prevwidth = x + (maxWidth - lineWidth) / 2
+        for (let word of line.split(' ')) {
+            //粗體設定
+            ctx.font = fontStyle
+            if (/.*##(.*)##.*/.test(word)) {
+                ctx.font = `bold ${fontStyle}`
+                const regex_result = word.match(/(.*)##(.*)##(.*)/)
+                word = regex_result[1] + regex_result[2] + regex_result[3]
+            }
+            ctx.fillText(word, prevwidth, y);
+            prevwidth += ctx.measureText(word + ' ').width
+        }
+        return
+    }
+
     //確定line裡的字總寬度會達到maxWidth時 把每個字各自fillText 才可以套用格式
     for (let word of line.split(' ')) {
         //粗體設定
@@ -177,11 +196,6 @@ const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
 }
 
 const replaceCharacterText = (w, book_characters, isCustomFace) => {
-    //粗體
-    if (w.substring(0, 2) === "##" && w.slice(-2) === "##") {
-        return w.substring(2, w.length - 1)
-    }
-
     //改變文字內容 且 為換臉模式
     if (w.includes('@') && isCustomFace) {
         const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
