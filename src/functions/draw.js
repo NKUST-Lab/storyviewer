@@ -22,9 +22,8 @@ let text_alignment = 'left'
 let fontStyle = ''
 export function drawText(ctx, data, isCustomFace) {
     if (data.text == undefined) return
-    return new Promise(resolve => {
-        for (let i = 0; i < data.text.length; i++) {
-            const text = data.text[i];
+    return Promise.all(
+        data.text.map(text => {
             const rictWidth = parseInt(text.rect.split(",")[0]);
             const rictHeight = parseInt(text.rect.split(",")[1]);
             const locationX = parseInt(text.location.split(",")[0]);
@@ -66,9 +65,8 @@ export function drawText(ctx, data, isCustomFace) {
             wrapText(ctx, text_context, re_positionedX, locationY + text.text_size * 1.16, rictWidth, text.text_size * 1.16, data.book_characters, isCustomFace);
             if (text.rotate !== 0) ctx.restore()
             // ctx.fillText(text_context, locationX, locationY, rictWidth);
-        }
-        resolve()
-    })
+        })
+    )
 
 }
 
@@ -76,19 +74,21 @@ export function drawText(ctx, data, isCustomFace) {
 export async function drawCharacter(ctx, data, isCustomFace) {
     if (data.character == undefined) return
     console.log("Doing draw iscustomface is ", isCustomFace)
-    for (let i = 0; i < data.character.length; i++) {
-        const character = data.character[i];
-        await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);
-    }
+    return Promise.all(
+        data.character.map(async(character) => {
+            await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);    
+        })
+    )
 }
 
 //繪製配件
 export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
-    for (let i = 0; i < data.accessories.length; i++) {
-        const accessory = data.accessories[i];
-        await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate, true);
-    }
+    return Promise.all(
+        data.accessories.map(async(accessory) => {
+            await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate, true);
+        })
+    )
 }
 
 //圖形繪製
