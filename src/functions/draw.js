@@ -75,8 +75,8 @@ export async function drawCharacter(ctx, data, isCustomFace) {
     if (data.character == undefined) return
     console.log("Doing draw iscustomface is ", isCustomFace)
     return Promise.all(
-        data.character.map(async(character) => {
-            await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);    
+        data.character.map(async (character) => {
+            await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);
         })
     )
 }
@@ -85,7 +85,7 @@ export async function drawCharacter(ctx, data, isCustomFace) {
 export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
     return Promise.all(
-        data.accessories.map(async(accessory) => {
+        data.accessories.map(async (accessory) => {
             await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate, true);
         })
     )
@@ -150,13 +150,7 @@ const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
         const reversed_line = line.split(' ').reverse()
         for (let word of reversed_line) {
             //粗體設定
-            ctx.font = fontStyle
-            if (/.*##(.*)##.*/.test(word)) {
-                //設定粗體時設定置中
-                ctx.font = `bold ${fontStyle}`
-                const regex_result = word.match(/(.*)##(.*)##(.*)/)
-                word = regex_result[1] + regex_result[2] + regex_result[3]
-            }
+            word = makeFontBold(ctx , word , fontStyle)
             prevwidth -= ctx.measureText(' ' + word).width
             ctx.fillText(word, prevwidth, y);
         }
@@ -169,12 +163,7 @@ const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
         prevwidth = x + (maxWidth - lineWidth) / 2
         for (let word of line.split(' ')) {
             //粗體設定
-            ctx.font = fontStyle
-            if (/.*##(.*)##.*/.test(word)) {
-                ctx.font = `bold ${fontStyle}`
-                const regex_result = word.match(/(.*)##(.*)##(.*)/)
-                word = regex_result[1] + regex_result[2] + regex_result[3]
-            }
+            word = makeFontBold(ctx , word , fontStyle)
             ctx.fillText(word, prevwidth, y);
             prevwidth += ctx.measureText(word + ' ').width
         }
@@ -184,15 +173,20 @@ const printLine = (ctx, x, y, line, maxWidth, is_full_line = true) => {
     //確定line裡的字總寬度會達到maxWidth時 把每個字各自fillText 才可以套用格式
     for (let word of line.split(' ')) {
         //粗體設定
-        ctx.font = fontStyle
-        if (/.*##(.*)##.*/.test(word)) {
-            ctx.font = `bold ${fontStyle}`
-            const regex_result = word.match(/(.*)##(.*)##(.*)/)
-            word = regex_result[1] + regex_result[2] + regex_result[3]
-        }
+        word = makeFontBold(ctx , word , fontStyle)
         ctx.fillText(word, prevwidth, y);
         prevwidth += ctx.measureText(word + ' ').width
     }
+}
+
+const makeFontBold = (ctx , word , fontStyle) => {
+    //粗體設定
+    ctx.font = fontStyle
+    if (word.includes("##")) {
+        ctx.font = `bold ${fontStyle}`
+        word = word.replaceAll('##', '')
+    }
+    return word
 }
 
 const replaceCharacterText = (w, book_characters, isCustomFace) => {
