@@ -30,7 +30,7 @@ export function drawText(ctx, data, isCustomFace) {
             const locationY = parseInt(text.location.split(",")[1]);
             const text_context = text.book_text;
             //設置字型及大小
-            fontStyle = `${text.text_size}px Chalkboard SE Light`;
+            fontStyle = fontStyleDetectOS(text.text_size)
             ctx.font = fontStyle
             ctx.fillStyle = text.text_color;
             //設置陰影
@@ -241,4 +241,16 @@ const replaceCharacterText = (w, book_characters, isCustomFace) => {
     }
 
     return w
+}
+
+const fontStyleDetectOS = (text_size) => {
+    const platform = navigator.platform
+    //Mac
+    if (platform.indexOf("Mac") > -1) {
+        return `${text_size}px ChalkboardSE-Light`
+    }
+    //Windows
+    if (platform.indexOf("Win") > -1) {
+        return `${text_size}px Chalkboard SE Light`
+    }
 }
