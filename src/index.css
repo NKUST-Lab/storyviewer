@@ -58,3 +58,16 @@ canvas{
 .btn-page.btn-next{
   background-image: url("../src/imgs/btn_next_readfirst.png");
 }
+
+.loadingscreen{
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #fff;
+  z-index: 5;
+}

@@ -10,7 +10,8 @@ function Storyviewer() {
     const [book_images, setbook_images] = useState([]);
     const [min_page_number, setmin_page_number] = useState(Infinity);
     const [max_page_number, setmax_page_number] = useState(0);
-    const [isCustomFace, setisCustomFace] = useState(false)
+    const [isCustomFace, setisCustomFace] = useState(false);
+    const [completeness, setcompleteness] = useState(0);
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -108,7 +109,7 @@ function Storyviewer() {
         const page_element = document.getElementById('page-number')
         const font_size = resizedButtonSize / 4
         page_element.style.fontSize = `${font_size}px`
-        page_element.style.top = `${resized_image_height - resizedButtonSize *3/5}px`
+        page_element.style.top = `${resized_image_height - resizedButtonSize * 3 / 5}px`
         page_element.style.left = `${img_element.width - font_size * 2}px`
     }
 
@@ -144,13 +145,14 @@ function Storyviewer() {
     const draw = async (book_page_content) => {
         setbook_images([])
         let temp_book_image = []
+        setcompleteness(0)
+        const eachcompleteness =  100/ book_page_content.length
         book_page_content.forEach(async (currentContent) => {
             const canvas = document.createElement('canvas')
             canvas.style.width = '2224px'
             canvas.style.height = '1668px'
             canvas.setAttribute('width', 2224)
             canvas.setAttribute('height', 1668)
-            document.body.appendChild(canvas)
             const ctx = canvas.getContext("2d"); //取得Dom元素
 
             console.log("doDraw");
@@ -165,7 +167,7 @@ function Storyviewer() {
 
             const image_url = canvas.toDataURL("image/jpeg", 1.0);
             temp_book_image = [...temp_book_image, { imagesrc: image_url, page_number: currentContent.book_page }]
-            canvas.remove()
+            setcompleteness(prevcompleteness => prevcompleteness + eachcompleteness)
 
             if (temp_book_image.length === book_page_content.length) {
                 setbook_images(temp_book_image)
@@ -211,6 +213,18 @@ function Storyviewer() {
         }
 
     }
+
+    //處理Loading畫面
+    useEffect(() => {
+        const loadingscreen = document.querySelector(".loadingscreen")
+        console.log(completeness)
+        if (completeness > 100) {
+            loadingscreen.style.display = "none"
+            return
+        }
+        loadingscreen.style.display = "flex"
+    }, [completeness])
+
 
     //docs123
     const replaceCharacterToUser = async (all_book_content) => {
@@ -267,6 +281,9 @@ function Storyviewer() {
 
     return (
         <div className='container'>
+            <div className='loadingscreen'>
+                <span>Loading... {Math.floor(completeness)}%</span>
+            </div>
             <canvas id="preview" width="2224" height="1668">
                 無此內容!
             </canvas>
