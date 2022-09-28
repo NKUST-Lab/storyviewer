@@ -218,7 +218,7 @@ function Storyviewer() {
     useEffect(() => {
         const loadingscreen = document.querySelector(".loadingscreen")
         console.log(completeness)
-        if (completeness > 100) {
+        if (completeness >= 100) {
             loadingscreen.style.display = "none"
             return
         }
