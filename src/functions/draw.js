@@ -253,4 +253,7 @@ const fontStyleDetectOS = (text_size) => {
     if (platform.indexOf("Win") > -1) {
         return `${text_size}px Chalkboard SE Light`
     }
+
+    //預設字體
+    return `${text_size}px Chalkboard SE Light`
 }
