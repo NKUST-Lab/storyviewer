@@ -74,21 +74,23 @@ export function drawText(ctx, data, isCustomFace) {
 export async function drawCharacter(ctx, data, isCustomFace) {
     if (data.character == undefined) return
     console.log("Doing draw iscustomface is ", isCustomFace)
-    return Promise.all(
-        data.character.map(async (character) => {
+    return new Promise(async(resolve) => {
+        for (const character of data.character) {
             await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);
-        })
-    )
+        }
+        resolve()
+    })
 }
 
 //繪製配件
 export async function drawAccessories(ctx, data) {
     if (data.accessories == undefined) return
-    return Promise.all(
-        data.accessories.map(async (accessory) => {
+    return new Promise(async(resolve) => {
+        for (const accessory of data.accessories) {
             await drawThings(ctx, accessory.accessory_url, accessory.size, accessory.location, accessory.rotate, true);
-        })
-    )
+        }
+        resolve()
+    })
 }
 
 //圖形繪製
