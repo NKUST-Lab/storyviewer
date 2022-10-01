@@ -76,8 +76,9 @@ const makeFontBold = (ctx , word , fontStyle) => {
 
 const replaceText = (w, book_characters, isCustomFace) => {
     //改變文字內容 且 為換臉模式
+    const replaceregex = /(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/
     if (w.includes('@') && isCustomFace) {
-        const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
+        const clean_word = w.match(replaceregex)[1]
         const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
 
         // @1 or @2 -> 客戶名稱
@@ -90,11 +91,11 @@ const replaceText = (w, book_characters, isCustomFace) => {
         }
 
         // @1he_she or @1him_her or @1his_her -> 客戶主詞 受詞 所有 根據客戶性別role_gender 
-        if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
+        if (replaceregex.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
                     const replace_word = char.role_gender === "M" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/, replace_word)
+                    return w.replace(replaceregex, replace_word)
                 }
             }
         }
@@ -102,7 +103,7 @@ const replaceText = (w, book_characters, isCustomFace) => {
 
     //改變文字內容 且 非換臉模式
     if (w.includes('@') && !isCustomFace) {
-        const clean_word = w.match(/(?<target>@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman|))/)[1]
+        const clean_word = w.match(replaceregex)[1]
         const rolenumber = parseInt(clean_word.match(/@(?<target>\d*)[\S\s]*/)[1])
 
         // @1 or @2 -> 角色名稱
@@ -115,11 +116,11 @@ const replaceText = (w, book_characters, isCustomFace) => {
         }
 
         // @1he_she or @1him_her or @1his_her -> 角色主詞 受詞 所有 根據角色性別character_gender
-        if (/^@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)$/.test(clean_word)) {
+        if (replaceregex.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
                     const replace_word = char.gender === "male" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
-                    return w.replace(/@\d+(he_she|him_her|his_her|his_her|himself_herself|He_She|Him_Her|His_Her|His_Hers|Himself_Herself|boy_girl|man_woman|Boy_Girl|Man_Woman)/, replace_word)
+                    return w.replace(replaceregex, replace_word)
                 }
             }
         }
