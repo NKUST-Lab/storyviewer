@@ -145,10 +145,10 @@ function Storyviewer() {
         const eachcompleteness = 100 / book_page_content.length
         book_page_content.forEach(async (currentContent) => {
             const canvas = document.createElement('canvas')
-            canvas.style.width = '2224px'
-            canvas.style.height = '1668px'
-            canvas.setAttribute('width', 2224)
-            canvas.setAttribute('height', 1668)
+            canvas.style.width = `${canvas_width}px`
+            canvas.style.height = `${canvas_height}px`
+            canvas.setAttribute('width', canvas_width)
+            canvas.setAttribute('height', canvas_height)
             const ctx = canvas.getContext("2d");
 
             console.log("doDraw");
