@@ -109,9 +109,17 @@ function Storyviewer() {
 
     //Execute when draw is over
     const finishedDraw = () => {
+        //插入照片element
         const container = document.querySelector(".container")
         container.insertBefore(new Image(),container.children[2])
         resizeImage()
+
+        //將Loading時隱藏的Element顯示
+        const hide_elements = document.querySelectorAll(".container > :not(.loadingscreen)")
+        hide_elements.forEach(element => {
+            element.style.display = 'block'
+        });
+
         //第一次繪畫後的初始化設定
         if (page_number === Infinity) {
             //設定該繪本的最大頁數及最小頁數
@@ -139,10 +147,17 @@ function Storyviewer() {
 
     //繪畫Function
     const draw = async (book_page_content) => {
+        //開始繪畫前初始化一些設定
+
+        const hide_elements = document.querySelectorAll(".container > :not(.loadingscreen)")
+        hide_elements.forEach(element => {
+            element.style.display = 'none'
+        });
         setbook_images([])
         let temp_book_image = []
         setcompleteness(0)
         const eachcompleteness = 100 / book_page_content.length
+
         book_page_content.forEach(async (currentContent) => {
             const canvas = document.createElement('canvas')
             canvas.style.width = `${canvas_width}px`
