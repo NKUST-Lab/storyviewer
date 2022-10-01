@@ -31,6 +31,7 @@ function Storyviewer() {
             })
     }, [])
 
+    //用來取得角色的詳細資料
     const fetchCharacterDetail = async (all_book_pages) => {
         return fetch(`https://toysrbooks.com/dev/v0.1/getBookCharacter.php?book_id=${bookid}&token=eyJhbGciOiJIUzIEc9mz`)
             .then(res => {
@@ -43,20 +44,22 @@ function Storyviewer() {
                 return newAll_book_pages
             })
     }
-
+    //當繪畫完畢時執行
     useEffect(() => {
         if (book_images.length === 0) return
         finishedDraw()
     }, [book_images])
 
-
+    //當第一次繪畫完畢時執行
     useEffect(() => {
         if (!All_book_content) return
         draw(All_book_content)
     }, [All_book_content])
 
+    //用來調整繪畫完後照片及其內物件的大小及位置
     const resizeImage = () => {
         const image = document.querySelector("img");
+        if (!image) return
         let scaleX
         let scaleY
 
@@ -109,7 +112,9 @@ function Storyviewer() {
         const container = document.querySelector(".container")
         container.insertBefore(new Image(),container.children[2])
         resizeImage()
+        //第一次繪畫後的初始化設定
         if (page_number === Infinity) {
+            //設定該繪本的最大頁數及最小頁數
             let temp_max_page_number = 0
             let temp_min_page_number = Infinity
             for (const image of book_images) {
@@ -122,13 +127,14 @@ function Storyviewer() {
             }
             setmax_page_number(temp_max_page_number)
             setmin_page_number(temp_min_page_number)
+            //繪畫結束後新增resize的event listener
+            window.addEventListener("resize", debounce(() => {
+                resizeImage()
+            }));
             handleSetPage(temp_min_page_number ,true);
         } else {
             handleSetPage(page_number);
         }
-        window.addEventListener("resize", debounce(() => {
-            resizeImage()
-        }));
     }
 
     //繪畫Function
@@ -143,7 +149,7 @@ function Storyviewer() {
             canvas.style.height = '1668px'
             canvas.setAttribute('width', 2224)
             canvas.setAttribute('height', 1668)
-            const ctx = canvas.getContext("2d"); //取得Dom元素
+            const ctx = canvas.getContext("2d");
 
             console.log("doDraw");
             console.log("currentContent", currentContent);
@@ -214,7 +220,7 @@ function Storyviewer() {
     }, [completeness])
 
 
-    //取得使用的臉 並且回傳一個改完face的book content
+    //取得使用者的臉 並且回傳一個改完face的book content
     const replaceCharacterToUser = async (all_book_content) => {
         return fetch("https://toysrbooks.com/dev/v0.1/getUserRole.php?token=eyJhbGciOiJIUzIEc9mz")
             .then(res => {
