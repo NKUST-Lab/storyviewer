@@ -48,6 +48,13 @@ canvas{
   display: block;
   background-color: gray;
   border-radius: 200px;
+  border: 1px;
+  padding: 0;
+  margin: 0;
+}
+
+.btn-face > span{
+  font-size: 50%;
 }
 
 #page-number{

@@ -81,8 +81,8 @@ function Storyviewer() {
         prevButton.style.height = `${resizedButtonSize}px`;
         nextButton.style.width = `${resizedButtonSize}px`;
         nextButton.style.height = `${resizedButtonSize}px`;
-        faceButton.style.width = `${resizedButtonSize}px`;
-        faceButton.style.height = `${resizedButtonSize}px`;
+        faceButton.style.width = `${resizedButtonSize / 2}px`;
+        faceButton.style.height = `${resizedButtonSize / 2}px`;
 
         //設定按鈕位置
         const imageX = image.offsetLeft
@@ -267,7 +267,9 @@ function Storyviewer() {
             <div className='loadingscreen'>
                 <span>Loading... {Math.floor(completeness)}%</span>
             </div>
-            <button className="btn-face" onClick={() => setisCustomFace(!isCustomFace)}>Original / Change</button>
+            <button className="btn-face" onClick={() => setisCustomFace(!isCustomFace)}>
+                <span>Original / Change</span>
+            </button>
             <button className="btn-page btn-prev" onClick={() => handleSetPage(page_number - 1)}></button>
             <button className="btn-page btn-next" onClick={() => handleSetPage(page_number + 1)}></button>
             <p id='page-number'></p>
