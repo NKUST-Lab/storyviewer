@@ -12,6 +12,8 @@ function Storyviewer() {
     const [max_page_number, setmax_page_number] = useState(0);
     const [isCustomFace, setisCustomFace] = useState(false);
     const [completeness, setcompleteness] = useState(0);
+    const [canvas_width, setcanvas_width] = useState(2224);
+    const [canvas_height, setcanvas_height] = useState(1668);
 
     //取得所有的書籍內容
     useEffect(() => {
@@ -54,55 +56,44 @@ function Storyviewer() {
     }, [All_book_content])
 
     const resizeImage = () => {
-        const image = document.querySelectorAll("img")[0];
+        const image = document.querySelector("img");
         let scaleX
         let scaleY
 
-        //取得使用者的視窗大小使Image等於視窗大小的0.9
-        let resized_image_width = window.innerWidth * 0.9
-
-        //透過比例算出照片適合高度
-        let ratio = resized_image_width / 2224;
-        let resized_image_height = 1668 * ratio
-
-        if (resized_image_height > window.innerHeight) {
-            resized_image_height = window.innerHeight
-            ratio = resized_image_height / 1668
-            resized_image_width = 2224 * ratio
-        }
-
+        //先將畫布的高與畫面高同高 然後在根據比例設定寬度
+        let resized_image_height = window.innerHeight
+        let ratio = resized_image_height / canvas_height
+        let resized_image_width = canvas_width * ratio
 
         //設定照片大小及縮放
         image.style.width = `${resized_image_width}px`;
         image.style.height = `${resized_image_height}px`;
-        scaleX = resized_image_width / 2224
-        scaleY = resized_image_height / 1668;
+        scaleX = resized_image_width / canvas_width
+        scaleY = resized_image_height / canvas_height;
 
 
-        //設定按鈕大小
-        const prevButton = document.getElementsByClassName("btn-prev")[0];
-        const nextButton = document.getElementsByClassName("btn-next")[0];
-        //Every 25px from 1920 to userWindow reduce the size of Buttons 1px
-        const responsivecondition = (1920 - window.innerWidth) / 25
-        const buttonSize = 150
-        const resizedButtonSize = buttonSize - responsivecondition
+        const prevButton = document.querySelector(".btn-prev")
+        const nextButton = document.querySelector(".btn-next")
+        const faceButton = document.querySelector('.btn-face');
+        //按鈕大小等於畫布高度 / 4
+        const resizedButtonSize = resized_image_height / 4
         prevButton.style.width = `${resizedButtonSize}px`;
         prevButton.style.height = `${resizedButtonSize}px`;
         nextButton.style.width = `${resizedButtonSize}px`;
         nextButton.style.height = `${resizedButtonSize}px`;
+        faceButton.style.width = `${resizedButtonSize}px`;
+        faceButton.style.height = `${resizedButtonSize}px`;
 
         //設定按鈕位置
+        const imageX = image.offsetLeft
         const buttonTop = resized_image_height - resizedButtonSize;
         prevButton.style.top = `${buttonTop}px`;
-        prevButton.style.left = `${100 * scaleX}px`;
-
-        const img_element = document.querySelectorAll("img")[0]
+        prevButton.style.left = `${100 * scaleX + imageX}px`;
 
         nextButton.style.top = `${buttonTop}px`;
-        nextButton.style.left = `${img_element.width - (100 * scaleX) - resizedButtonSize}px`;
-
-        const faceButton = document.getElementsByClassName("btn-face")[0];
-        faceButton.style.left = `${100 * scaleX}px`;
+        nextButton.style.left = `${image.width - (100 * scaleX) - resizedButtonSize + imageX}px`;
+        
+        faceButton.style.left = `${100 * scaleX + imageX}px`;
         faceButton.style.top = `${100 * scaleY}px`;
 
         //設定頁碼位置
@@ -110,14 +101,13 @@ function Storyviewer() {
         const font_size = resizedButtonSize / 4
         page_element.style.fontSize = `${font_size}px`
         page_element.style.top = `${resized_image_height - resizedButtonSize * 3 / 5}px`
-        page_element.style.left = `${img_element.width - font_size * 2}px`
+        page_element.style.left = `${image.width - font_size * 2 + imageX}px`
     }
 
     //Execute when draw is over
     const finishedDraw = () => {
-        const canvas = document.getElementById("preview")
-        console.log(`%c finished draw replace canvas to img`, "color:red;font-size:25px")
-        canvas?.replaceWith(new Image())
+        const container = document.querySelector(".container")
+        container.insertBefore(new Image(),container.children[2])
         resizeImage()
         if (page_number === Infinity) {
             let temp_max_page_number = 0
@@ -132,7 +122,7 @@ function Storyviewer() {
             }
             setmax_page_number(temp_max_page_number)
             setmin_page_number(temp_min_page_number)
-            handleSetPage(temp_min_page_number);
+            handleSetPage(temp_min_page_number ,true);
         } else {
             handleSetPage(page_number);
         }
@@ -146,7 +136,7 @@ function Storyviewer() {
         setbook_images([])
         let temp_book_image = []
         setcompleteness(0)
-        const eachcompleteness =  100/ book_page_content.length
+        const eachcompleteness = 100 / book_page_content.length
         book_page_content.forEach(async (currentContent) => {
             const canvas = document.createElement('canvas')
             canvas.style.width = '2224px'
@@ -176,7 +166,7 @@ function Storyviewer() {
     }
 
 
-    //處理RWD
+    //用來處理RWD
     const debounce = (func) => {
         let timer;
         return () => {
@@ -185,30 +175,29 @@ function Storyviewer() {
         };
     }
 
-    //處理換頁
+    //換頁時根據頁數選出同頁數的照片
     const showImageOnScreen = (_page_number) => {
-        const image_element = document.querySelectorAll("img")[0]
+        const image_element = document.querySelector("img")
         image_element.src = book_images.find(image => image.page_number === _page_number).imagesrc
     }
 
     //處理換頁
-    const handleSetPage = (_page_number) => {
+    const handleSetPage = (_page_number , firstender = false) => {
 
         setpage_number(_page_number)
         showImageOnScreen(_page_number)
         document.getElementById('page-number').innerText = _page_number
-        console.log("page", _page_number)
 
-        document.querySelectorAll("button.btn-prev")[0].style.display = "block"
-        document.querySelectorAll("button.btn-next")[0].style.display = "block"
+        document.querySelector("button.btn-prev").style.display = "block"
+        document.querySelector("button.btn-next").style.display = "block"
 
-        if (_page_number === min_page_number) {
-            document.querySelectorAll("button.btn-prev")[0].style.display = "none"
+        if (_page_number === min_page_number || firstender) {
+            document.querySelector("button.btn-prev").style.display = "none"
             return
         }
 
         if (_page_number === max_page_number) {
-            document.querySelectorAll("button.btn-next")[0].style.display = "none"
+            document.querySelector("button.btn-next").style.display = "none"
             return
         }
 
@@ -217,7 +206,6 @@ function Storyviewer() {
     //處理Loading畫面
     useEffect(() => {
         const loadingscreen = document.querySelector(".loadingscreen")
-        console.log(completeness)
         if (completeness >= 100) {
             loadingscreen.style.display = "none"
             return
@@ -226,7 +214,7 @@ function Storyviewer() {
     }, [completeness])
 
 
-    //docs123
+    //取得使用的臉 並且回傳一個改完face的book content
     const replaceCharacterToUser = async (all_book_content) => {
         return fetch("https://toysrbooks.com/dev/v0.1/getUserRole.php?token=eyJhbGciOiJIUzIEc9mz")
             .then(res => {
@@ -257,18 +245,13 @@ function Storyviewer() {
     }
 
 
-
+    //按下換臉按鈕時觸發
     useEffect(() => {
 
+        if (completeness < 100) return
+        
         const handleSetFace = async () => {
-            const img = document.querySelectorAll("img")[0]
-            console.log(`%c handleSetFace`, "color:red;font-size:25px")
-            const canvas = document.createElement('canvas')
-            canvas.id = "preview"
-            canvas.width = "2224"
-            canvas.height = "1668"
-            img.replaceWith(canvas)
-
+            document.querySelector("img").remove()
             const customface_book_content = await replaceCharacterToUser([...All_book_content])
             console.log(customface_book_content)
             draw(isCustomFace ? customface_book_content : All_book_content)
@@ -284,9 +267,6 @@ function Storyviewer() {
             <div className='loadingscreen'>
                 <span>Loading... {Math.floor(completeness)}%</span>
             </div>
-            <canvas id="preview" width="2224" height="1668">
-                無此內容!
-            </canvas>
             <button className="btn-face" onClick={() => setisCustomFace(!isCustomFace)}>Original / Change</button>
             <button className="btn-page btn-prev" onClick={() => handleSetPage(page_number - 1)}></button>
             <button className="btn-page btn-next" onClick={() => handleSetPage(page_number + 1)}></button>
