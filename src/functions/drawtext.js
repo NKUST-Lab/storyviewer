@@ -94,7 +94,9 @@ const replaceText = (w, book_characters, isCustomFace) => {
         if (replaceregex.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    const replace_word = char.role_gender === "M" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
+                    const replace_word = char.role_gender === "M" 
+                    ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] 
+                    : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
                     return w.replace(replaceregex, replace_word)
                 }
             }
@@ -119,7 +121,9 @@ const replaceText = (w, book_characters, isCustomFace) => {
         if (replaceregex.test(clean_word)) {
             for (const char of book_characters) {
                 if (char.character_number === rolenumber) {
-                    const replace_word = char.gender === "male" ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
+                    const replace_word = char.gender === "male" 
+                    ? clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[1] 
+                    : clean_word.match(/^@\d*(?<target>\S*)_(?<target2>\S*)/)[2]
                     return w.replace(replaceregex, replace_word)
                 }
             }

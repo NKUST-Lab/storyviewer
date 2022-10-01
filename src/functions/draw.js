@@ -1,6 +1,5 @@
 import wrapText from "./drawtext";
 
-// Testing commit
 //繪製底圖
 export function drawBackgroundImage(ctx, data) {
     const img = new Image();
@@ -20,7 +19,6 @@ export function drawBackgroundImage(ctx, data) {
 }
 
 //繪製文字
-let text_alignment = 'left'
 export function drawText(ctx, data, isCustomFace) {
     if (data.text == undefined) return
     return Promise.all(
@@ -38,6 +36,7 @@ export function drawText(ctx, data, isCustomFace) {
             }
             //設定對齊
             let re_positionedX = locationX
+            let text_alignment = 'left'
             switch (text.alignment) {
                 case 0:
                     text_alignment = 'center'
@@ -56,13 +55,13 @@ export function drawText(ctx, data, isCustomFace) {
             //設定旋轉
             ctx.save();
             if (text.rotate !== 0) ctx.rotate(text.rotate * Math.PI / 180);
+            const lineheight =  text.text_size * 1.16
             wrapText(ctx, text, re_positionedX, 
-                locationY + text.text_size * 1.16, 
-                rictWidth, text.text_size * 1.16, 
+                locationY + lineheight, 
+                rictWidth, lineheight, 
                 data.book_characters, isCustomFace,
                 text_alignment);
             if (text.rotate !== 0) ctx.restore()
-            // ctx.fillText(text_context, locationX, locationY, rictWidth);
         })
     )
 
@@ -74,7 +73,11 @@ export async function drawCharacter(ctx, data, isCustomFace) {
     console.log("Doing draw iscustomface is ", isCustomFace)
     return new Promise(async(resolve) => {
         for (const character of data.character) {
-            await drawThings(ctx, character.source_url, isCustomFace ? character.size : 100, isCustomFace ? character.location : character.source_location, isCustomFace ? character.rotate : 0, isCustomFace);
+            await drawThings(ctx, character.source_url, 
+                isCustomFace ? character.size : 100, 
+                isCustomFace ? character.location : character.source_location,
+                isCustomFace ? character.rotate : 0,
+                isCustomFace);
         }
         resolve()
     })
@@ -108,7 +111,12 @@ function drawThings(ctx, src, size, location, rotate, isCustomface = false) {
                 //設定旋轉
                 if (rotate !== 0) ctx.translate(locationX, locationY);
                 if (rotate !== 0) ctx.rotate(rotate * Math.PI / 180);
-                ctx.drawImage(img, (rotate !== 0 && isCustomface) ? -resizeWidth / 2 : locationX - resizeWidth / 2, (rotate !== 0 && isCustomface) ? -resizeHeight / 2 : locationY - resizeHeight / 2, resizeWidth, resizeHeight);
+                //如為換臉模式 且圖形需要旋轉 則需要在不同的座標位置繪畫
+                if (rotate !== 0 && isCustomface) {
+                    ctx.drawImage(img, -resizeWidth / 2 , -resizeHeight / 2 ,resizeWidth, resizeHeight);
+                } else{
+                    ctx.drawImage(img, locationX - resizeWidth / 2, locationY - resizeHeight / 2, resizeWidth, resizeHeight);
+                }  
                 ctx.restore()
                 resolve();
             })
